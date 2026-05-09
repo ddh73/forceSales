@@ -13,8 +13,6 @@
         <a class="back-link" href="{% url 'account_list' %}">← Back to accounts</a>
     </div>
 
-    <p class="edit-hint">Fields start read-only. Click a field to edit it, then save your changes.</p>
-
     <form class="record-form" method="post" novalidate>
         {% csrf_token %}
         {% for field in form %}
@@ -25,7 +23,7 @@
                 {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
             </div>
         {% endfor %}
-        <button class="save-button" type="submit" disabled>Save changes</button>
+        <button class="save-button" type="submit" hidden>Save changes</button>
     </form>
 </section>
 
@@ -35,7 +33,7 @@
         field.addEventListener("click", () => {
             field.removeAttribute("readonly");
             field.classList.add("is-editing");
-            document.querySelector(".save-button").removeAttribute("disabled");
+            document.querySelector(".save-button").removeAttribute("hidden");
         });
     });
 </script>

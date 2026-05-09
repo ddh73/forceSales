@@ -114,8 +114,9 @@ class AccountViewTests(TestCase):
         response = self.client.get(self.account.get_absolute_url())
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Fields start read-only")
+        self.assertNotContains(response, "Fields start read-only")
         self.assertContains(response, 'field.setAttribute("readonly", "readonly")')
+        self.assertContains(response, '<button class="save-button" type="submit" hidden>Save changes</button>', html=True)
         self.assertContains(response, "123-45-6789")
         self.assertContains(response, "Preferred Branch")
         self.assertContains(response, "London")
@@ -144,15 +145,26 @@ class AccountViewTests(TestCase):
 
 
 class AccountAdminTests(TestCase):
-    def test_staff_can_open_account_add_page_in_admin(self):
+    def test_staff_cannot_add_or_change_accounts_in_admin(self):
         User.objects.create_superuser(username="admin", password="complex-pass-123")
         self.client.login(username="admin", password="complex-pass-123")
+        account = Account.objects.create(
+            first_name="Katherine",
+            middle_name="",
+            last_name="Johnson",
+            tax_id_code="SSN",
+            tax_id_number="222-33-4444",
+            date_of_birth=date(1918, 8, 26),
+        )
 
-        response = self.client.get(reverse("admin:crm_account_add"))
+        add_response = self.client.get(reverse("admin:crm_account_add"))
+        change_response = self.client.get(reverse("admin:crm_account_change", args=[account.pk]))
 
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Tax ID code")
-        self.assertContains(response, "Date of birth")
+        self.assertEqual(add_response.status_code, 403)
+        self.assertEqual(change_response.status_code, 200)
+        self.assertNotContains(change_response, 'name="_save"')
+        self.assertNotContains(change_response, 'name="_addanother"')
+        self.assertNotContains(change_response, 'class="deletelink"')
 
     def test_staff_can_manage_account_field_definitions_in_admin(self):
         User.objects.create_superuser(username="admin", password="complex-pass-123")

@@ -6,6 +6,16 @@ from .models import Account, AccountField, AccountFieldValue
 class AccountFieldValueInline(admin.TabularInline):
     extra = 0
     model = AccountFieldValue
+    readonly_fields = ("field", "value", "updated_at")
+
+    def has_add_permission(self, request, obj=None):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(Account)
@@ -30,6 +40,15 @@ class AccountAdmin(admin.ModelAdmin):
     list_filter = ("tax_id_code",)
     ordering = ("last_name", "first_name", "middle_name")
     search_fields = ("first_name", "middle_name", "last_name", "tax_id_code", "tax_id_number")
+
+    def has_add_permission(self, request):
+        return False
+
+    def has_change_permission(self, request, obj=None):
+        return False
+
+    def has_delete_permission(self, request, obj=None):
+        return False
 
 
 @admin.register(AccountField)
