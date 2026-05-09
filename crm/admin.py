@@ -1,4 +1,6 @@
 from django.contrib import admin
+from django.http import JsonResponse
+from django.urls import path, reverse
 
 from .models import (
     Account,
@@ -78,6 +80,45 @@ class ProfileObjectPermissionAdmin(admin.ModelAdmin):
     list_editable = ("can_read", "can_write", "can_read_all", "can_edit_all")
     list_filter = ("profile", "content_type")
     search_fields = ("profile__name", "content_type__app_label", "content_type__model")
+
+    class Media:
+        js = ("crm/admin/profile_object_permission.js",)
+
+    def get_urls(self):
+        urls = super().get_urls()
+        custom_urls = [
+            path(
+                "lookup/",
+                self.admin_site.admin_view(self.lookup_access),
+                name="crm_profileobjectpermission_lookup",
+            ),
+        ]
+        return custom_urls + urls
+
+    def lookup_access(self, request):
+        profile_id = request.GET.get("profile")
+        content_type_id = request.GET.get("content_type")
+        if not profile_id or not content_type_id:
+            return JsonResponse({"found": False})
+
+        permission = ProfileObjectPermission.objects.filter(
+            profile_id=profile_id,
+            content_type_id=content_type_id,
+        ).first()
+        if not permission:
+            return JsonResponse({"found": False})
+
+        return JsonResponse(
+            {
+                "found": True,
+                "id": permission.pk,
+                "change_url": reverse("admin:crm_profileobjectpermission_change", args=[permission.pk]),
+                "can_read": permission.can_read,
+                "can_write": permission.can_write,
+                "can_read_all": permission.can_read_all,
+                "can_edit_all": permission.can_edit_all,
+            }
+        )
 
 
 @admin.register(Product)

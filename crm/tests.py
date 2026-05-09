@@ -492,6 +492,53 @@ class OpportunityViewTests(TestCase):
         self.assertEqual(line_item.description, "Customer-facing product notes")
 
 
+class ProfileObjectPermissionAdminTests(TestCase):
+    def setUp(self):
+        User.objects.create_superuser(username="admin-access", password="complex-pass-123")
+        self.client.login(username="admin-access", password="complex-pass-123")
+
+    def test_change_form_loads_access_lookup_script(self):
+        standard_group = Group.objects.get(name="Standard User")
+        permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(Account),
+        )
+
+        response = self.client.get(reverse("admin:crm_profileobjectpermission_change", args=[permission.pk]))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "crm/admin/profile_object_permission.js")
+
+    def test_lookup_returns_existing_access_for_selected_profile_and_object(self):
+        standard_group = Group.objects.get(name="Standard User")
+        opportunity_permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(Opportunity),
+        )
+
+        response = self.client.get(
+            reverse("admin:crm_profileobjectpermission_lookup"),
+            {
+                "profile": standard_group.pk,
+                "content_type": ContentType.objects.get_for_model(Opportunity).pk,
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(
+            response.json(),
+            {
+                "found": True,
+                "id": opportunity_permission.pk,
+                "change_url": reverse("admin:crm_profileobjectpermission_change", args=[opportunity_permission.pk]),
+                "can_read": True,
+                "can_write": True,
+                "can_read_all": False,
+                "can_edit_all": False,
+            },
+        )
+
+
 class OpportunityAdminTests(TestCase):
     def test_opportunity_admin_uses_correct_plural_name(self):
         self.assertEqual(Opportunity._meta.verbose_name_plural, "opportunities")
