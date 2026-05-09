@@ -654,7 +654,6 @@ button:hover,
     z-index: 30;
 }
 
-.launcher-heading h2,
 .launcher-heading p {
     margin-bottom: 0;
 }
@@ -718,8 +717,7 @@ button:hover,
 }
 
 .object-card small,
-.launcher-empty,
-.hero-copy {
+.launcher-empty {
     color: var(--muted);
 }
 
@@ -737,12 +735,6 @@ button:hover,
     margin-bottom: 0.75rem;
 }
 
-.hero-copy {
-    font-size: 1.05rem;
-    font-weight: 700;
-    margin: 0;
-    max-width: 48rem;
-}
 
 .dashboard-opportunities {
     display: grid;
