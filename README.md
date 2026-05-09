@@ -23,7 +23,7 @@ python manage.py createsuperuser
 python manage.py runserver
 ```
 
-Open <http://127.0.0.1:8000/> and log in with the superuser account.
+Open <http://127.0.0.1:8000/> and log in with the superuser account. Local development defaults `DJANGO_DEBUG` to `True` so Django serves the stylesheet while using `runserver`; keep `DJANGO_DEBUG=False` in Azure.
 
 ## Branding and theme colors
 

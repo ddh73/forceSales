@@ -16,10 +16,7 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
-        <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">
-            <span class="brand-mark" aria-hidden="true">{{ site_branding.name|first }}</span>
-            <span>{{ site_branding.name }}</span>
-        </a>
+        <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">{{ site_branding.name }}</a>
         {% if user.is_authenticated %}
             <nav class="nav-links" aria-label="Primary navigation">
                 <span>Signed in as {{ user.get_username }}</span>

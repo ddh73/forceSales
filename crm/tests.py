@@ -45,7 +45,9 @@ class BrandingTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Acme Pipeline")
+        self.assertNotContains(response, "brand-mark")
         self.assertContains(response, "--primary: #111111")
         self.assertContains(response, "--secondary: #222222")
         self.assertContains(response, "--accent: #333333")
         self.assertNotContains(response, "Manage customers")
+        self.assertContains(response, "Log in")
