@@ -8,7 +8,7 @@
         <p class="eyebrow">Accounts</p>
         <h1>Account records</h1>
     </div>
-    <a class="button-link" href="{% url 'account_create' %}">New account</a>
+    {% if can_create_account %}<a class="button-link" href="{% url 'account_create' %}">New account</a>{% endif %}
 </section>
 
 <section class="panel">
@@ -28,7 +28,7 @@
         <div class="empty-state">
             <h2>No accounts yet</h2>
             <p>Create the first account here. Admins can add or change custom account fields from the backend object manager.</p>
-            <a class="button-link" href="{% url 'account_create' %}">Create account</a>
+            {% if can_create_account %}<a class="button-link" href="{% url 'account_create' %}">Create account</a>{% endif %}
         </div>
     {% endif %}
 </section>

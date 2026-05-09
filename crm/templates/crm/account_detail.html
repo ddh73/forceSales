@@ -14,6 +14,7 @@
     </div>
 
     <form class="record-form" method="post" novalidate>
+        {% if not can_edit_account %}<p class="edit-hint">You have read-only access to this account.</p>{% endif %}
         {% csrf_token %}
         {% for field in form %}
             <div class="record-field{% if field.errors %} has-errors{% endif %}">
@@ -23,14 +24,19 @@
                 {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
             </div>
         {% endfor %}
-        <button class="save-button is-hidden" type="submit">Save changes</button>
+        {% if can_edit_account %}<button class="save-button is-hidden" type="submit">Save changes</button>{% endif %}
     </form>
 </section>
 
 <script>
+    const canEditAccount = {{ can_edit_account|yesno:"true,false" }};
     const recordForm = document.querySelector(".record-form");
     const saveButton = document.querySelector(".save-button");
     const editableFields = recordForm.querySelectorAll("input, textarea, select");
+
+    if (!canEditAccount) {
+        editableFields.forEach((field) => field.setAttribute("disabled", "disabled"));
+    }
 
     function startEditing(field) {
         field.removeAttribute("readonly");
@@ -38,11 +44,13 @@
         saveButton.classList.remove("is-hidden");
     }
 
+    if (canEditAccount) {
     editableFields.forEach((field) => {
         field.setAttribute("readonly", "readonly");
         field.addEventListener("click", () => startEditing(field));
         field.addEventListener("focus", () => startEditing(field));
         field.addEventListener("input", () => startEditing(field));
     });
+    }
 </script>
 {% endblock %}

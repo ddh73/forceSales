@@ -1,7 +1,32 @@
+from django.conf import settings
+from django.contrib.auth.models import Group
+from django.contrib.contenttypes.models import ContentType
 from django.core.exceptions import ValidationError
 from django.db import models
 from django.urls import reverse
 from django.utils.text import slugify
+
+
+class ProfileObjectPermission(models.Model):
+    """Object-level access granted to a profile (Django auth group)."""
+
+    profile = models.ForeignKey(Group, on_delete=models.CASCADE, related_name="object_permissions")
+    content_type = models.ForeignKey(ContentType, on_delete=models.CASCADE, related_name="crm_profile_permissions")
+    can_read = models.BooleanField("Read", default=False)
+    can_write = models.BooleanField("Write", default=False)
+    can_read_all = models.BooleanField("Read all", default=False)
+    can_edit_all = models.BooleanField("Edit all", default=False)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["profile__name", "content_type__app_label", "content_type__model"]
+        unique_together = ("profile", "content_type")
+        verbose_name = "profile object access"
+        verbose_name_plural = "profile object access"
+
+    def __str__(self):
+        return f"{self.profile.name} - {self.content_type}"
 
 
 class Account(models.Model):
@@ -21,6 +46,13 @@ class Account(models.Model):
     tax_id_code = models.CharField("Tax ID code", blank=True, choices=TAX_ID_CODE_CHOICES, max_length=32)
     tax_id_number = models.CharField("Tax ID number", blank=True, max_length=64)
     date_of_birth = models.DateField(blank=True, null=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="owned_accounts",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
@@ -72,11 +104,19 @@ class Opportunity(models.Model):
     stage = models.CharField(choices=STAGE_CHOICES, default=IN_PROGRESS, max_length=32)
     close_date = models.DateField(blank=True, null=True)
     description = models.TextField(blank=True)
+    owner = models.ForeignKey(
+        settings.AUTH_USER_MODEL,
+        blank=True,
+        null=True,
+        on_delete=models.SET_NULL,
+        related_name="owned_opportunities",
+    )
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
     class Meta:
         ordering = ["-updated_at", "name"]
+        verbose_name_plural = "opportunities"
 
     def __str__(self):
         return self.name

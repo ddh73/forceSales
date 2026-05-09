@@ -1,11 +1,13 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.core.exceptions import PermissionDenied
 from django.db.models import Q
 from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
 from django.views import View
 from django.views.generic import ListView, TemplateView
 
+from .access import get_object_access, scope_queryset_to_readable_records, user_can_edit_record, user_can_read_record
 from .forms import AccountForm, OpportunityForm, OpportunityLineItemFormSet
 from .models import Account, Opportunity, Product
 
@@ -26,11 +28,14 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["open_opportunities"] = (
+        user = self.request.user
+        open_opportunities = (
             Opportunity.objects.filter(stage=Opportunity.IN_PROGRESS)
             .select_related("account")
-            .prefetch_related("line_items__product")[:10]
+            .prefetch_related("line_items__product")
         )
+        context["open_opportunities"] = scope_queryset_to_readable_records(open_opportunities, user)[:10]
+        context["can_create_opportunity"] = get_object_access(user, Opportunity).can_create
         return context
 
 
@@ -41,7 +46,7 @@ class AccountSearchView(LoginRequiredMixin, View):
         query = request.GET.get("q", "").strip()
         accounts = Account.objects.none()
         if query:
-            accounts = Account.objects.all()
+            accounts = scope_queryset_to_readable_records(Account.objects.all(), request.user)
             for term in query.split():
                 accounts = accounts.filter(
                     Q(first_name__icontains=term)
@@ -61,6 +66,14 @@ class AccountListView(LoginRequiredMixin, ListView):
     paginate_by = 25
     template_name = "crm/account_list.html"
 
+    def get_queryset(self):
+        return scope_queryset_to_readable_records(Account.objects.all(), self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_create_account"] = get_object_access(self.request.user, Account).can_create
+        return context
+
 
 class AccountCreateView(LoginRequiredMixin, TemplateView):
     """Allow normal users to create account records."""
@@ -69,13 +82,21 @@ class AccountCreateView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        access = get_object_access(self.request.user, Account)
+        if not access.can_create:
+            raise PermissionDenied
         context["form"] = kwargs.get("form") or AccountForm()
         return context
 
     def post(self, request, *args, **kwargs):
+        if not get_object_access(request.user, Account).can_create:
+            raise PermissionDenied
         form = AccountForm(request.POST)
         if form.is_valid():
-            account = form.save()
+            account = form.save(commit=False)
+            account.owner = request.user
+            account.save()
+            form.save_custom_fields(account)
             messages.success(request, "Account created.")
             return redirect(account.get_absolute_url())
         return self.render_to_response(self.get_context_data(form=form))
@@ -88,15 +109,20 @@ class AccountDetailView(LoginRequiredMixin, TemplateView):
 
     def dispatch(self, request, *args, **kwargs):
         self.account = get_object_or_404(Account, pk=kwargs["pk"])
+        if not user_can_read_record(request.user, self.account):
+            raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["account"] = self.account
+        context["can_edit_account"] = user_can_edit_record(self.request.user, self.account)
         context["form"] = kwargs.get("form") or AccountForm(instance=self.account)
         return context
 
     def post(self, request, *args, **kwargs):
+        if not user_can_edit_record(request.user, self.account):
+            raise PermissionDenied
         form = AccountForm(request.POST, instance=self.account)
         if form.is_valid():
             form.save()
@@ -114,7 +140,13 @@ class OpportunityListView(LoginRequiredMixin, ListView):
     template_name = "crm/opportunity_list.html"
 
     def get_queryset(self):
-        return Opportunity.objects.select_related("account").prefetch_related("line_items")
+        opportunities = Opportunity.objects.select_related("account").prefetch_related("line_items")
+        return scope_queryset_to_readable_records(opportunities, self.request.user)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["can_create_opportunity"] = get_object_access(self.request.user, Opportunity).can_create
+        return context
 
 
 class OpportunityCreateView(LoginRequiredMixin, TemplateView):
@@ -124,13 +156,19 @@ class OpportunityCreateView(LoginRequiredMixin, TemplateView):
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        context["form"] = kwargs.get("form") or OpportunityForm()
+        if not get_object_access(self.request.user, Opportunity).can_create:
+            raise PermissionDenied
+        context["form"] = kwargs.get("form") or OpportunityForm(user=self.request.user)
         return context
 
     def post(self, request, *args, **kwargs):
-        form = OpportunityForm(request.POST)
+        if not get_object_access(request.user, Opportunity).can_create:
+            raise PermissionDenied
+        form = OpportunityForm(request.POST, user=request.user)
         if form.is_valid():
-            opportunity = form.save()
+            opportunity = form.save(commit=False)
+            opportunity.owner = request.user
+            opportunity.save()
             messages.success(request, "Opportunity created. Add product line items.")
             return redirect(opportunity.get_absolute_url())
         return self.render_to_response(self.get_context_data(form=form))
@@ -146,12 +184,15 @@ class OpportunityDetailView(LoginRequiredMixin, TemplateView):
             Opportunity.objects.select_related("account").prefetch_related("line_items__product"),
             pk=kwargs["pk"],
         )
+        if not user_can_read_record(request.user, self.opportunity):
+            raise PermissionDenied
         return super().dispatch(request, *args, **kwargs)
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
         context["opportunity"] = self.opportunity
-        context["form"] = kwargs.get("form") or OpportunityForm(instance=self.opportunity)
+        context["can_edit_opportunity"] = user_can_edit_record(self.request.user, self.opportunity)
+        context["form"] = kwargs.get("form") or OpportunityForm(instance=self.opportunity, user=self.request.user)
         context["line_item_formset"] = kwargs.get("line_item_formset") or OpportunityLineItemFormSet(
             instance=self.opportunity
         )
@@ -159,7 +200,9 @@ class OpportunityDetailView(LoginRequiredMixin, TemplateView):
         return context
 
     def post(self, request, *args, **kwargs):
-        form = OpportunityForm(request.POST, instance=self.opportunity)
+        if not user_can_edit_record(request.user, self.opportunity):
+            raise PermissionDenied
+        form = OpportunityForm(request.POST, instance=self.opportunity, user=request.user)
         line_item_formset = OpportunityLineItemFormSet(request.POST, instance=self.opportunity)
         if form.is_valid() and line_item_formset.is_valid():
             form.save()

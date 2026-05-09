@@ -38,7 +38,7 @@
         <div class="empty-state compact-empty-state">
             <h2>No open opportunities</h2>
             <p>When opportunities are in progress, they will appear here for quick follow-up.</p>
-            <a class="button-link" href="{% url 'opportunity_create' %}">Create opportunity</a>
+            {% if can_create_opportunity %}<a class="button-link" href="{% url 'opportunity_create' %}">Create opportunity</a>{% endif %}
         </div>
     {% endif %}
 </section>
