@@ -26,16 +26,20 @@ class DashboardView(LoginRequiredMixin, TemplateView):
 
     template_name = "crm/dashboard.html"
 
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        user = self.request.user
-        open_opportunities = (
+    def get_open_opportunities(self):
+        """Return the current user's readable in-progress opportunities."""
+
+        opportunities = (
             Opportunity.objects.filter(stage=Opportunity.IN_PROGRESS)
             .select_related("account")
             .prefetch_related("line_items__product")
         )
-        context["open_opportunities"] = scope_queryset_to_readable_records(open_opportunities, user)[:10]
-        context["can_create_opportunity"] = get_object_access(user, Opportunity).can_create
+        return scope_queryset_to_readable_records(opportunities, self.request.user)[:10]
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["open_opportunities"] = self.get_open_opportunities()
+        context["can_create_opportunity"] = get_object_access(self.request.user, Opportunity).can_create
         return context
 
 
