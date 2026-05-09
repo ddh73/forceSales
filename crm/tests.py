@@ -1,5 +1,5 @@
 from django.contrib.auth.models import Group, User
-from django.test import TestCase
+from django.test import TestCase, override_settings
 from django.urls import reverse
 
 
@@ -29,3 +29,22 @@ class DashboardAccessTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Open admin console")
+
+
+class BrandingTests(TestCase):
+    @override_settings(
+        SITE_BRANDING={
+            "name": "Acme Pipeline",
+            "main_color": "#111111",
+            "secondary_color": "#222222",
+            "third_color": "#333333",
+        }
+    )
+    def test_login_page_uses_configured_branding(self):
+        response = self.client.get(reverse("login"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Welcome to Acme Pipeline")
+        self.assertContains(response, "--primary: #111111")
+        self.assertContains(response, "--secondary: #222222")
+        self.assertContains(response, "--accent: #333333")

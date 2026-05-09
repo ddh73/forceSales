@@ -4,6 +4,8 @@ import os
 
 import dj_database_url
 
+from . import site_branding
+
 BASE_DIR = Path(__file__).resolve().parent.parent
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-change-me")
@@ -14,6 +16,13 @@ ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts.split(",") if host.stri
 
 _csrf_origins = os.environ.get("DJANGO_CSRF_TRUSTED_ORIGINS", "")
 CSRF_TRUSTED_ORIGINS = [origin.strip() for origin in _csrf_origins.split(",") if origin.strip()]
+
+SITE_BRANDING = {
+    "name": os.environ.get("WEBSITE_NAME", site_branding.WEBSITE_NAME),
+    "main_color": os.environ.get("MAIN_STYLE_COLOR", site_branding.MAIN_STYLE_COLOR),
+    "secondary_color": os.environ.get("SECONDARY_STYLE_COLOR", site_branding.SECONDARY_STYLE_COLOR),
+    "third_color": os.environ.get("THIRD_STYLE_COLOR", site_branding.THIRD_STYLE_COLOR),
+}
 
 INSTALLED_APPS = [
     "django.contrib.admin",
@@ -48,6 +57,7 @@ TEMPLATES = [
                 "django.template.context_processors.request",
                 "django.contrib.auth.context_processors.auth",
                 "django.contrib.messages.context_processors.messages",
+                "crm.context_processors.site_branding",
             ],
         },
     },

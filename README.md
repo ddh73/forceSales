@@ -10,7 +10,7 @@ Force Sales is a Django starter CRM intended to grow into a Salesforce-style web
 - Default `CRM Admin` and `Standard User` Django groups created by the first migration.
 - Static-file serving with WhiteNoise for Azure.
 - `startup.sh` and `Procfile` for App Service startup.
-- Environment-variable based settings for secret key, allowed hosts, CSRF trusted origins, SSL redirect, and database connection.
+- Environment-variable based settings for secret key, allowed hosts, CSRF trusted origins, SSL redirect, database connection, and site branding.
 
 ## Run locally
 
@@ -24,6 +24,28 @@ python manage.py runserver
 ```
 
 Open <http://127.0.0.1:8000/> and log in with the superuser account.
+
+## Branding and theme colors
+
+The default site name and theme colors live in `force_sales/site_branding.py`, which works like a small style configuration file:
+
+```python
+WEBSITE_NAME = "Force Sales"
+MAIN_STYLE_COLOR = "#0b5cab"
+SECONDARY_STYLE_COLOR = "#35a1ff"
+THIRD_STYLE_COLOR = "#20c997"
+```
+
+The templates read those values and convert them into CSS custom properties used by `static/css/site.css`. In Azure, you can override the same values without changing code by setting these application settings:
+
+```text
+WEBSITE_NAME=Your CRM Name
+MAIN_STYLE_COLOR=#0b5cab
+SECONDARY_STYLE_COLOR=#35a1ff
+THIRD_STYLE_COLOR=#20c997
+```
+
+Use six-digit hex colors so the theme can be safely rendered into the page.
 
 ## Roles and users
 
@@ -64,6 +86,10 @@ These steps assume an Azure App Service for Linux running Python and, for produc
    DJANGO_ALLOWED_HOSTS=<your-app-name>.azurewebsites.net
    DJANGO_CSRF_TRUSTED_ORIGINS=https://<your-app-name>.azurewebsites.net
    DJANGO_SECURE_SSL_REDIRECT=True
+   WEBSITE_NAME=<your CRM name>
+   MAIN_STYLE_COLOR=#0b5cab
+   SECONDARY_STYLE_COLOR=#35a1ff
+   THIRD_STYLE_COLOR=#20c997
    DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/DBNAME
    ```
 

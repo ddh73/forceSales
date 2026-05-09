@@ -4,12 +4,22 @@
 <head>
     <meta charset="utf-8">
     <meta name="viewport" content="width=device-width, initial-scale=1">
-    <title>{% block title %}Force Sales{% endblock %}</title>
+    <title>{% block title %}{{ site_branding.name }}{% endblock %}</title>
+    <style>
+        :root {
+            --primary: {{ site_branding.main_color }};
+            --secondary: {{ site_branding.secondary_color }};
+            --accent: {{ site_branding.third_color }};
+        }
+    </style>
     <link rel="stylesheet" href="{% static 'css/site.css' %}">
 </head>
-<body>
+<body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
-        <a class="brand" href="{% url 'dashboard' %}">Force Sales</a>
+        <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">
+            <span class="brand-mark" aria-hidden="true">{{ site_branding.name|first }}</span>
+            <span>{{ site_branding.name }}</span>
+        </a>
         {% if user.is_authenticated %}
             <nav class="nav-links" aria-label="Primary navigation">
                 <span>Signed in as {{ user.get_username }}</span>
