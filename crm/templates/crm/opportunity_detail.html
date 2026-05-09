@@ -36,7 +36,6 @@
         <div class="subsection-heading">
             <div>
                 <h2>Opportunity line items</h2>
-                <p>Add the product name and an optional description for each line item. Product records are maintained by admins.</p>
             </div>
             {% if not has_products %}<p class="edit-hint">No active products are available yet. Ask an admin to add products before adding line items.</p>{% endif %}
         </div>
@@ -58,8 +57,14 @@
                 </div>
             {% endfor %}
         </div>
-        <button class="save-button" type="submit">Save opportunity</button>
+        {% if can_edit_opportunity %}<button class="save-button" type="submit">Save opportunity</button>{% endif %}
     </form>
 </section>
-{% include "crm/includes/account_search_script.html" %}
+{% if can_edit_opportunity %}
+    {% include "crm/includes/account_search_script.html" %}
+{% else %}
+<script>
+    document.querySelectorAll("input, textarea, select").forEach((field) => field.setAttribute("disabled", "disabled"));
+</script>
+{% endif %}
 {% endblock %}
