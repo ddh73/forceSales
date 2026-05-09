@@ -1,0 +1,34 @@
+{% extends "crm/base.html" %}
+
+{% block title %}Dashboard | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card">
+    <p class="eyebrow">Dashboard</p>
+    <h1>{{ site_branding.name }}</h1>
+</section>
+
+<section class="grid">
+    <article class="panel">
+        <h2>Role</h2>
+        {% if is_crm_admin %}
+            <p class="badge admin">Admin</p>
+            <a class="button-link" href="{% url 'admin:index' %}">Open admin</a>
+        {% elif is_standard_user %}
+            <p class="badge user">Standard user</p>
+        {% else %}
+            <p class="badge user">User</p>
+        {% endif %}
+    </article>
+
+    <article class="panel">
+        <h2>CRM</h2>
+        <ul class="feature-list compact">
+            <li>Accounts</li>
+            <li>Contacts</li>
+            <li>Leads</li>
+            <li>Opportunities</li>
+        </ul>
+    </article>
+</section>
+{% endblock %}

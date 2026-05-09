@@ -1,0 +1,43 @@
+{% load static %}
+<!doctype html>
+<html lang="en">
+<head>
+    <meta charset="utf-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1">
+    <title>{% block title %}{{ site_branding.name }}{% endblock %}</title>
+    <style>
+        :root {
+            --primary: {{ site_branding.main_color }};
+            --secondary: {{ site_branding.secondary_color }};
+            --accent: {{ site_branding.third_color }};
+        }
+    </style>
+    <link rel="stylesheet" href="{% static 'css/site.css' %}">
+</head>
+<body class="{% block body_class %}{% endblock %}">
+    <header class="site-header">
+        <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">{{ site_branding.name }}</a>
+        {% if user.is_authenticated %}
+            <nav class="nav-links" aria-label="Primary navigation">
+                <span>Signed in as {{ user.get_username }}</span>
+                {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
+                <form action="{% url 'logout' %}" method="post">
+                    {% csrf_token %}
+                    <button class="link-button" type="submit">Log out</button>
+                </form>
+            </nav>
+        {% endif %}
+    </header>
+
+    <main class="page-shell">
+        {% if messages %}
+            <section class="messages" aria-label="Messages">
+                {% for message in messages %}
+                    <p class="message {{ message.tags }}">{{ message }}</p>
+                {% endfor %}
+            </section>
+        {% endif %}
+        {% block content %}{% endblock %}
+    </main>
+</body>
+</html>
