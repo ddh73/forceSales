@@ -95,29 +95,18 @@ class AccountViewTests(TestCase):
         self.assertContains(response, reverse("account_create"))
         self.assertContains(response, "New account")
 
-    def test_standard_user_only_sees_owned_accounts_by_default(self):
-        other_user = User.objects.create_user(username="other", password="complex-pass-123")
-        Account.objects.create(owner=other_user, first_name="Hidden", last_name="Account")
-
-        self.client.login(username="standard", password="complex-pass-123")
-        response = self.client.get(reverse("account_list"))
-
-        self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Ada M Lovelace")
-        self.assertNotContains(response, "Hidden Account")
-
-    def test_read_all_and_edit_all_expand_account_record_access(self):
+    def test_standard_user_has_full_account_access_by_default(self):
         other_user = User.objects.create_user(username="other", password="complex-pass-123")
         other_account = Account.objects.create(owner=other_user, first_name="Shared", last_name="Account")
-        standard_group = Group.objects.get(name="Standard User")
-        ProfileObjectPermission.objects.update_or_create(
-            profile=standard_group,
-            content_type=ContentType.objects.get_for_model(Account),
-            defaults={"can_read": True, "can_write": True, "can_read_all": True, "can_edit_all": True},
-        )
 
         self.client.login(username="standard", password="complex-pass-123")
-        response = self.client.post(
+        list_response = self.client.get(reverse("account_list"))
+
+        self.assertEqual(list_response.status_code, 200)
+        self.assertContains(list_response, "Ada M Lovelace")
+        self.assertContains(list_response, "Shared Account")
+
+        update_response = self.client.post(
             other_account.get_absolute_url(),
             {
                 "first_name": "Shared",
@@ -130,16 +119,21 @@ class AccountViewTests(TestCase):
             },
         )
 
-        self.assertRedirects(response, other_account.get_absolute_url())
+        self.assertRedirects(update_response, other_account.get_absolute_url())
         other_account.refresh_from_db()
         self.assertEqual(other_account.last_name, "Edited")
 
-    def test_standard_user_does_not_have_opportunity_access_by_default(self):
+    def test_standard_user_has_owned_opportunity_access_by_default(self):
+        other_user = User.objects.create_user(username="other", password="complex-pass-123")
+        Opportunity.objects.create(owner=other_user, name="Hidden opportunity")
+
         self.client.login(username="standard", password="complex-pass-123")
+        list_response = self.client.get(reverse("opportunity_list"))
+        create_response = self.client.get(reverse("opportunity_create"))
 
-        response = self.client.get(reverse("opportunity_create"))
-
-        self.assertEqual(response.status_code, 403)
+        self.assertEqual(list_response.status_code, 200)
+        self.assertNotContains(list_response, "Hidden opportunity")
+        self.assertEqual(create_response.status_code, 200)
 
     def test_admin_profile_has_default_access_for_every_crm_object(self):
         admin_group = Group.objects.get(name="CRM Admin")
@@ -160,6 +154,26 @@ class AccountViewTests(TestCase):
             self.assertTrue(permission.can_write)
             self.assertTrue(permission.can_read_all)
             self.assertTrue(permission.can_edit_all)
+
+    def test_standard_profile_default_object_access(self):
+        standard_group = Group.objects.get(name="Standard User")
+        account_permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(Account),
+        )
+        opportunity_permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(Opportunity),
+        )
+
+        self.assertTrue(account_permission.can_read)
+        self.assertTrue(account_permission.can_write)
+        self.assertTrue(account_permission.can_read_all)
+        self.assertTrue(account_permission.can_edit_all)
+        self.assertTrue(opportunity_permission.can_read)
+        self.assertTrue(opportunity_permission.can_write)
+        self.assertFalse(opportunity_permission.can_read_all)
+        self.assertFalse(opportunity_permission.can_edit_all)
 
     def test_standard_user_can_create_account_with_admin_defined_fields(self):
         self.client.login(username="standard", password="complex-pass-123")
@@ -333,11 +347,6 @@ class OpportunityViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
         cls.user = User.objects.create_user(username="seller", password="complex-pass-123")
-        cls.standard_group = Group.objects.get(name="Standard User")
-        cls.standard_group.object_permissions.update_or_create(
-            content_type=ContentType.objects.get_for_model(Opportunity),
-            defaults={"can_read": True, "can_write": True, "can_read_all": False, "can_edit_all": False},
-        )
         cls.account = Account.objects.create(owner=cls.user, first_name="Dorothy", last_name="Vaughan")
         cls.product = Product.objects.create(name="Implementation Package", description="Implementation services")
         cls.opportunity = Opportunity.objects.create(
