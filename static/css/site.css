@@ -300,3 +300,198 @@ button:hover,
         flex-direction: column;
     }
 }
+
+.compact-hero {
+    padding-bottom: 2rem;
+    padding-top: 2rem;
+}
+
+.tab-list {
+    display: grid;
+    gap: 0.8rem;
+}
+
+.tab-card {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(11, 92, 171, 0.16);
+    border-radius: 1rem;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    text-decoration: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.tab-card:not(.disabled):hover {
+    border-color: var(--secondary);
+    box-shadow: 0 14px 32px rgba(11, 92, 171, 0.16);
+    transform: translateY(-1px);
+}
+
+.tab-card.disabled {
+    opacity: 0.62;
+}
+
+.tab-title {
+    font-weight: 900;
+}
+
+.tab-meta,
+.record-row small,
+.edit-hint {
+    color: var(--muted);
+}
+
+.record-list {
+    display: grid;
+    gap: 0.75rem;
+}
+
+.record-row {
+    align-items: center;
+    background: rgba(255, 255, 255, 0.72);
+    border: 1px solid rgba(11, 92, 171, 0.14);
+    border-radius: 1rem;
+    color: var(--text);
+    display: flex;
+    justify-content: space-between;
+    padding: 1rem;
+    text-decoration: none;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.record-row:hover {
+    border-color: var(--secondary);
+    box-shadow: 0 14px 32px rgba(11, 92, 171, 0.16);
+    transform: translateY(-1px);
+}
+
+.record-row small {
+    display: block;
+    margin-top: 0.25rem;
+}
+
+.record-action {
+    color: var(--primary);
+    font-weight: 900;
+}
+
+.empty-state {
+    text-align: center;
+}
+
+.record-toolbar {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    margin-bottom: 1rem;
+}
+
+.back-link {
+    color: var(--primary);
+    font-weight: 900;
+    text-decoration: none;
+}
+
+.record-form {
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+}
+
+.record-field {
+    display: grid;
+    gap: 0.45rem;
+}
+
+.record-field label {
+    font-size: 0.85rem;
+    font-weight: 900;
+}
+
+.record-field input {
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(11, 92, 171, 0.18);
+    border-radius: 0.9rem;
+    font: inherit;
+    padding: 0.9rem 1rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    width: 100%;
+}
+
+.record-field input[readonly] {
+    cursor: pointer;
+}
+
+.record-field input.is-editing,
+.record-field input:focus {
+    background: white;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 4px rgba(53, 161, 255, 0.18);
+    outline: none;
+}
+
+.field-errors ul {
+    color: var(--danger-text);
+    margin: 0;
+    padding-left: 1.2rem;
+}
+
+.save-button {
+    grid-column: 1 / -1;
+    justify-self: start;
+}
+
+.save-button.is-hidden {
+    display: none;
+}
+
+.save-button:disabled {
+    cursor: not-allowed;
+    filter: grayscale(0.7);
+    opacity: 0.58;
+    transform: none;
+}
+
+.split-hero {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.field-help {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.record-field select,
+.record-field textarea {
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(11, 92, 171, 0.18);
+    border-radius: 0.9rem;
+    font: inherit;
+    padding: 0.9rem 1rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    width: 100%;
+}
+
+.record-field select[readonly],
+.record-field textarea[readonly] {
+    cursor: pointer;
+}
+
+.record-field select.is-editing,
+.record-field textarea.is-editing,
+.record-field select:focus,
+.record-field textarea:focus {
+    background: white;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 4px rgba(53, 161, 255, 0.18);
+    outline: none;
+}

@@ -1,0 +1,35 @@
+{% extends "crm/base.html" %}
+
+{% block title %}Accounts | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero split-hero">
+    <div>
+        <p class="eyebrow">Accounts</p>
+        <h1>Account records</h1>
+    </div>
+    <a class="button-link" href="{% url 'account_create' %}">New account</a>
+</section>
+
+<section class="panel">
+    {% if accounts %}
+        <div class="record-list" aria-label="Account list">
+            {% for account in accounts %}
+                <a class="record-row" href="{{ account.get_absolute_url }}">
+                    <span>
+                        <strong>{{ account.full_name }}</strong>
+                        <small>{{ account.tax_id_code }} • {{ account.date_of_birth }}</small>
+                    </span>
+                    <span class="record-action">Open record</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No accounts yet</h2>
+            <p>Create the first account here. Admins can add or change custom account fields from the backend object manager.</p>
+            <a class="button-link" href="{% url 'account_create' %}">Create account</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

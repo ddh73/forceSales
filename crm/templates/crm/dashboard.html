@@ -23,12 +23,24 @@
 
     <article class="panel">
         <h2>CRM</h2>
-        <ul class="feature-list compact">
-            <li>Accounts</li>
-            <li>Contacts</li>
-            <li>Leads</li>
-            <li>Opportunities</li>
-        </ul>
+        <div class="tab-list" aria-label="CRM objects">
+            <a class="tab-card" href="{% url 'account_list' %}">
+                <span class="tab-title">Accounts</span>
+                <span class="tab-meta">{{ account_count }} total • Create and edit records</span>
+            </a>
+            <span class="tab-card disabled" aria-disabled="true">
+                <span class="tab-title">Contacts</span>
+                <span class="tab-meta">Coming soon</span>
+            </span>
+            <span class="tab-card disabled" aria-disabled="true">
+                <span class="tab-title">Leads</span>
+                <span class="tab-meta">Coming soon</span>
+            </span>
+            <span class="tab-card disabled" aria-disabled="true">
+                <span class="tab-title">Opportunities</span>
+                <span class="tab-meta">Coming soon</span>
+            </span>
+        </div>
     </article>
 </section>
 {% endblock %}

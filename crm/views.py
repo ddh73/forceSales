@@ -1,6 +1,10 @@
+from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
-from django.shortcuts import redirect
-from django.views.generic import TemplateView
+from django.shortcuts import get_object_or_404, redirect
+from django.views.generic import ListView, TemplateView
+
+from .forms import AccountForm
+from .models import Account
 
 
 class HomeView(TemplateView):
@@ -22,4 +26,57 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         user = self.request.user
         context["is_crm_admin"] = user.is_superuser or user.groups.filter(name="CRM Admin").exists()
         context["is_standard_user"] = user.groups.filter(name="Standard User").exists()
+        context["account_count"] = Account.objects.count()
         return context
+
+
+class AccountListView(LoginRequiredMixin, ListView):
+    """Display the current list of CRM accounts."""
+
+    context_object_name = "accounts"
+    model = Account
+    paginate_by = 25
+    template_name = "crm/account_list.html"
+
+
+class AccountCreateView(LoginRequiredMixin, TemplateView):
+    """Allow normal users to create account records."""
+
+    template_name = "crm/account_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = kwargs.get("form") or AccountForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = AccountForm(request.POST)
+        if form.is_valid():
+            account = form.save()
+            messages.success(request, "Account created.")
+            return redirect(account.get_absolute_url())
+        return self.render_to_response(self.get_context_data(form=form))
+
+
+class AccountDetailView(LoginRequiredMixin, TemplateView):
+    """Display an account record and allow inline field editing."""
+
+    template_name = "crm/account_detail.html"
+
+    def dispatch(self, request, *args, **kwargs):
+        self.account = get_object_or_404(Account, pk=kwargs["pk"])
+        return super().dispatch(request, *args, **kwargs)
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["account"] = self.account
+        context["form"] = kwargs.get("form") or AccountForm(instance=self.account)
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = AccountForm(request.POST, instance=self.account)
+        if form.is_valid():
+            form.save()
+            messages.success(request, "Account updated.")
+            return redirect(self.account.get_absolute_url())
+        return self.render_to_response(self.get_context_data(form=form))

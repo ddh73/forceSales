@@ -1,0 +1,48 @@
+{% extends "crm/base.html" %}
+
+{% block title %}{{ account.full_name }} | Accounts | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <p class="eyebrow">Account</p>
+    <h1>{{ account.full_name }}</h1>
+</section>
+
+<section class="panel">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'account_list' %}">← Back to accounts</a>
+    </div>
+
+    <form class="record-form" method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <button class="save-button is-hidden" type="submit">Save changes</button>
+    </form>
+</section>
+
+<script>
+    const recordForm = document.querySelector(".record-form");
+    const saveButton = document.querySelector(".save-button");
+    const editableFields = recordForm.querySelectorAll("input, textarea, select");
+
+    function startEditing(field) {
+        field.removeAttribute("readonly");
+        field.classList.add("is-editing");
+        saveButton.classList.remove("is-hidden");
+    }
+
+    editableFields.forEach((field) => {
+        field.setAttribute("readonly", "readonly");
+        field.addEventListener("click", () => startEditing(field));
+        field.addEventListener("focus", () => startEditing(field));
+        field.addEventListener("input", () => startEditing(field));
+    });
+</script>
+{% endblock %}

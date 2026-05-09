@@ -20,6 +20,7 @@
         {% if user.is_authenticated %}
             <nav class="nav-links" aria-label="Primary navigation">
                 <span>Signed in as {{ user.get_username }}</span>
+                <a href="{% url 'account_list' %}">Accounts</a>
                 {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
                 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
