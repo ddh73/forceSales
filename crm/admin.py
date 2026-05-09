@@ -1,6 +1,14 @@
 from django.contrib import admin
 
-from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
+from .models import (
+    Account,
+    AccountField,
+    AccountFieldValue,
+    Opportunity,
+    OpportunityLineItem,
+    Product,
+    ProfileObjectPermission,
+)
 
 
 class AccountFieldValueInline(admin.TabularInline):
@@ -15,6 +23,7 @@ class AccountAdmin(admin.ModelAdmin):
             "Account details",
             {
                 "fields": (
+                    "owner",
                     "first_name",
                     "middle_name",
                     "last_name",
@@ -26,7 +35,7 @@ class AccountAdmin(admin.ModelAdmin):
         ),
     )
     inlines = (AccountFieldValueInline,)
-    list_display = ("full_name", "tax_id_code", "tax_id_number", "date_of_birth", "updated_at")
+    list_display = ("full_name", "owner", "tax_id_code", "tax_id_number", "date_of_birth", "updated_at")
     list_filter = ("tax_id_code",)
     ordering = ("last_name", "first_name", "middle_name")
     search_fields = ("first_name", "middle_name", "last_name", "tax_id_code", "tax_id_number")
@@ -51,6 +60,26 @@ class AccountFieldAdmin(admin.ModelAdmin):
     search_fields = ("label", "api_name")
 
 
+@admin.register(ProfileObjectPermission)
+class ProfileObjectPermissionAdmin(admin.ModelAdmin):
+    fieldsets = (
+        (
+            "Object access",
+            {
+                "description": (
+                    "Profiles are Django groups. Read/write grant access to records users own; "
+                    "Read all/edit all expand that access across every record for the object."
+                ),
+                "fields": ("profile", "content_type", "can_read", "can_write", "can_read_all", "can_edit_all"),
+            },
+        ),
+    )
+    list_display = ("profile", "content_type", "can_read", "can_write", "can_read_all", "can_edit_all", "updated_at")
+    list_editable = ("can_read", "can_write", "can_read_all", "can_edit_all")
+    list_filter = ("profile", "content_type")
+    search_fields = ("profile__name", "content_type__app_label", "content_type__model")
+
+
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
     list_display = ("name", "active", "updated_at")
@@ -67,7 +96,7 @@ class OpportunityLineItemInline(admin.TabularInline):
 @admin.register(Opportunity)
 class OpportunityAdmin(admin.ModelAdmin):
     inlines = (OpportunityLineItemInline,)
-    list_display = ("name", "account", "stage", "close_date", "updated_at")
+    list_display = ("name", "account", "owner", "stage", "close_date", "updated_at")
     list_filter = ("stage", "close_date")
     search_fields = ("name", "account__first_name", "account__last_name", "description")
 

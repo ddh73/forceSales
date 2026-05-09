@@ -17,6 +17,7 @@
     </div>
 
     <form method="post" novalidate>
+        {% if not can_edit_opportunity %}<p class="edit-hint">You have read-only access to this opportunity.</p>{% endif %}
         {% csrf_token %}
         <div class="record-form">
             {% for field in form %}
@@ -58,8 +59,14 @@
                 </div>
             {% endfor %}
         </div>
-        <button class="save-button" type="submit">Save opportunity</button>
+        {% if can_edit_opportunity %}<button class="save-button" type="submit">Save opportunity</button>{% endif %}
     </form>
 </section>
-{% include "crm/includes/account_search_script.html" %}
+{% if can_edit_opportunity %}
+    {% include "crm/includes/account_search_script.html" %}
+{% else %}
+<script>
+    document.querySelectorAll("input, textarea, select").forEach((field) => field.setAttribute("disabled", "disabled"));
+</script>
+{% endif %}
 {% endblock %}

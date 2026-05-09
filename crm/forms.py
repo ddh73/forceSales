@@ -1,6 +1,7 @@
 from django import forms
 from django.urls import reverse_lazy
 
+from .access import scope_queryset_to_readable_records
 from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
 
 
@@ -106,8 +107,12 @@ class OpportunityForm(forms.ModelForm):
         }
 
     def __init__(self, *args, **kwargs):
+        self.user = kwargs.pop("user", None)
         super().__init__(*args, **kwargs)
-        self.fields["account"].queryset = Account.objects.all()
+        accounts = Account.objects.all()
+        if self.user is not None:
+            accounts = scope_queryset_to_readable_records(accounts, self.user)
+        self.fields["account"].queryset = accounts
         self.fields["account"].required = False
         if self.instance and self.instance.pk and self.instance.account:
             self.fields["account_search"].initial = self.instance.account.full_name
