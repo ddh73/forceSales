@@ -3,7 +3,7 @@ from django.contrib.auth.mixins import LoginRequiredMixin
 from django.shortcuts import get_object_or_404, redirect
 from django.views.generic import ListView, TemplateView
 
-from .forms import AccountForm, OpportunityForm, OpportunityLineItemFormSet, ProductForm
+from .forms import AccountForm, OpportunityForm, OpportunityLineItemFormSet
 from .models import Account, Opportunity, Product
 
 
@@ -28,7 +28,6 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context["is_standard_user"] = user.groups.filter(name="Standard User").exists()
         context["account_count"] = Account.objects.count()
         context["opportunity_count"] = Opportunity.objects.count()
-        context["product_count"] = Product.objects.count()
         return context
 
 
@@ -81,59 +80,6 @@ class AccountDetailView(LoginRequiredMixin, TemplateView):
             form.save()
             messages.success(request, "Account updated.")
             return redirect(self.account.get_absolute_url())
-        return self.render_to_response(self.get_context_data(form=form))
-
-
-class ProductListView(LoginRequiredMixin, ListView):
-    """Display products available for opportunity line items."""
-
-    context_object_name = "products"
-    model = Product
-    paginate_by = 25
-    template_name = "crm/product_list.html"
-
-
-class ProductCreateView(LoginRequiredMixin, TemplateView):
-    """Allow users to create products for the catalog."""
-
-    template_name = "crm/product_form.html"
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["form"] = kwargs.get("form") or ProductForm()
-        context["product"] = None
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = ProductForm(request.POST)
-        if form.is_valid():
-            product = form.save()
-            messages.success(request, "Product created.")
-            return redirect(product.get_absolute_url())
-        return self.render_to_response(self.get_context_data(form=form))
-
-
-class ProductDetailView(LoginRequiredMixin, TemplateView):
-    """Display and edit a product record."""
-
-    template_name = "crm/product_form.html"
-
-    def dispatch(self, request, *args, **kwargs):
-        self.product = get_object_or_404(Product, pk=kwargs["pk"])
-        return super().dispatch(request, *args, **kwargs)
-
-    def get_context_data(self, **kwargs):
-        context = super().get_context_data(**kwargs)
-        context["product"] = self.product
-        context["form"] = kwargs.get("form") or ProductForm(instance=self.product)
-        return context
-
-    def post(self, request, *args, **kwargs):
-        form = ProductForm(request.POST, instance=self.product)
-        if form.is_valid():
-            form.save()
-            messages.success(request, "Product updated.")
-            return redirect(self.product.get_absolute_url())
         return self.render_to_response(self.get_context_data(form=form))
 
 

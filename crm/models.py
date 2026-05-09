@@ -39,12 +39,10 @@ class Account(models.Model):
 
 
 class Product(models.Model):
-    """Sellable catalog item used to start opportunity line items."""
+    """Admin-managed product option used to start opportunity line items."""
 
     name = models.CharField(max_length=150)
-    product_code = models.CharField(blank=True, max_length=64, null=True, unique=True)
     description = models.TextField(blank=True)
-    list_price = models.DecimalField(decimal_places=2, default=0, max_digits=12)
     active = models.BooleanField(default=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -53,12 +51,7 @@ class Product(models.Model):
         ordering = ["name"]
 
     def __str__(self):
-        if self.product_code:
-            return f"{self.name} ({self.product_code})"
         return self.name
-
-    def get_absolute_url(self):
-        return reverse("product_detail", kwargs={"pk": self.pk})
 
 
 class Opportunity(models.Model):
@@ -91,18 +84,12 @@ class Opportunity(models.Model):
     def get_absolute_url(self):
         return reverse("opportunity_detail", kwargs={"pk": self.pk})
 
-    @property
-    def amount(self):
-        return sum((line_item.total_price for line_item in self.line_items.all()), start=0)
-
 
 class OpportunityLineItem(models.Model):
-    """A quantity and sales price for one product on an opportunity."""
+    """A product selected for an opportunity with optional notes."""
 
     opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name="line_items")
     product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="opportunity_line_items")
-    quantity = models.DecimalField(decimal_places=2, default=1, max_digits=10)
-    sales_price = models.DecimalField("sales price", decimal_places=2, max_digits=12)
     description = models.CharField(blank=True, max_length=255)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
@@ -111,17 +98,7 @@ class OpportunityLineItem(models.Model):
         ordering = ["product__name", "id"]
 
     def __str__(self):
-        return f"{self.product} x {self.quantity}"
-
-    def clean(self):
-        if self.quantity is not None and self.quantity <= 0:
-            raise ValidationError({"quantity": "Quantity must be greater than zero."})
-        if self.sales_price is not None and self.sales_price < 0:
-            raise ValidationError({"sales_price": "Sales price cannot be negative."})
-
-    @property
-    def total_price(self):
-        return self.quantity * self.sales_price
+        return self.product.name
 
 
 class AccountField(models.Model):

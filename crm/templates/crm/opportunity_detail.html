@@ -8,13 +8,12 @@
         <p class="eyebrow">Opportunity</p>
         <h1>{{ opportunity.name }}</h1>
     </div>
-    <span class="badge user">{{ opportunity.get_stage_display }} • ${{ opportunity.amount }}</span>
+    <span class="badge user">{{ opportunity.get_stage_display }}</span>
 </section>
 
 <section class="panel stacked-panel">
     <div class="record-toolbar">
         <a class="back-link" href="{% url 'opportunity_list' %}">← Back to opportunities</a>
-        <a class="back-link" href="{% url 'product_list' %}">Manage products</a>
     </div>
 
     <form method="post" novalidate>
@@ -33,9 +32,9 @@
         <div class="subsection-heading">
             <div>
                 <h2>Opportunity line items</h2>
-                <p>Each line item starts from an active product and contributes quantity × sales price to the opportunity amount.</p>
+                <p>Add the product name and an optional description for each line item. Product records are maintained by admins.</p>
             </div>
-            {% if not has_products %}<a class="button-link" href="{% url 'product_create' %}">Create a product first</a>{% endif %}
+            {% if not has_products %}<p class="edit-hint">No active products are available yet. Ask an admin to add products before adding line items.</p>{% endif %}
         </div>
 
         {{ line_item_formset.management_form }}

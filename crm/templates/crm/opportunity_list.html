@@ -18,7 +18,7 @@
                 <a class="record-row" href="{{ opportunity.get_absolute_url }}">
                     <span>
                         <strong>{{ opportunity.name }}</strong>
-                        <small>{{ opportunity.get_stage_display }}{% if opportunity.account %} • {{ opportunity.account.full_name }}{% endif %} • ${{ opportunity.amount }}</small>
+                        <small>{{ opportunity.get_stage_display }}{% if opportunity.account %} • {{ opportunity.account.full_name }}{% endif %}</small>
                     </span>
                     <span class="record-action">Open opportunity</span>
                 </a>

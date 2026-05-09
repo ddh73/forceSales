@@ -53,10 +53,10 @@ class AccountFieldAdmin(admin.ModelAdmin):
 
 @admin.register(Product)
 class ProductAdmin(admin.ModelAdmin):
-    list_display = ("name", "product_code", "list_price", "active", "updated_at")
-    list_editable = ("list_price", "active")
+    list_display = ("name", "active", "updated_at")
+    list_editable = ("active",)
     list_filter = ("active",)
-    search_fields = ("name", "product_code", "description")
+    search_fields = ("name", "description")
 
 
 class OpportunityLineItemInline(admin.TabularInline):
@@ -74,6 +74,6 @@ class OpportunityAdmin(admin.ModelAdmin):
 
 @admin.register(OpportunityLineItem)
 class OpportunityLineItemAdmin(admin.ModelAdmin):
-    list_display = ("opportunity", "product", "quantity", "sales_price", "total_price", "updated_at")
+    list_display = ("opportunity", "product", "description", "updated_at")
     list_filter = ("product",)
-    search_fields = ("opportunity__name", "product__name", "product__product_code", "description")
+    search_fields = ("opportunity__name", "product__name", "description")

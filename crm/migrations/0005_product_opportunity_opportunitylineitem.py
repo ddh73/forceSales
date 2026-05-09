@@ -24,15 +24,7 @@ class Migration(migrations.Migration):
                     ),
                 ),
                 ("name", models.CharField(max_length=150)),
-                (
-                    "product_code",
-                    models.CharField(blank=True, max_length=64, null=True, unique=True),
-                ),
                 ("description", models.TextField(blank=True)),
-                (
-                    "list_price",
-                    models.DecimalField(decimal_places=2, default=0, max_digits=12),
-                ),
                 ("active", models.BooleanField(default=True)),
                 ("created_at", models.DateTimeField(auto_now_add=True)),
                 ("updated_at", models.DateTimeField(auto_now=True)),
@@ -95,16 +87,6 @@ class Migration(migrations.Migration):
                         primary_key=True,
                         serialize=False,
                         verbose_name="ID",
-                    ),
-                ),
-                (
-                    "quantity",
-                    models.DecimalField(decimal_places=2, default=1, max_digits=10),
-                ),
-                (
-                    "sales_price",
-                    models.DecimalField(
-                        decimal_places=2, max_digits=12, verbose_name="sales price"
                     ),
                 ),
                 ("description", models.CharField(blank=True, max_length=255)),
