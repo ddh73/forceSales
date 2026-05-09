@@ -109,6 +109,54 @@ class AccountViewTests(TestCase):
             "Arlington",
         )
 
+
+    def test_only_last_name_is_required_to_create_account(self):
+        self.client.login(username="standard", password="complex-pass-123")
+
+        response = self.client.post(
+            reverse("account_create"),
+            {
+                "first_name": "",
+                "middle_name": "",
+                "last_name": "Solo",
+                "tax_id_code": "",
+                "tax_id_number": "",
+                "date_of_birth": "",
+                f"custom_field_{self.custom_field.pk}": "",
+            },
+        )
+
+        account = Account.objects.get(last_name="Solo")
+        self.assertRedirects(response, account.get_absolute_url())
+        self.assertEqual(account.first_name, "")
+        self.assertEqual(account.tax_id_code, "")
+        self.assertIsNone(account.date_of_birth)
+
+    def test_tax_id_code_is_ssn_or_ein_picklist(self):
+        self.client.login(username="standard", password="complex-pass-123")
+
+        response = self.client.get(reverse("account_create"))
+
+        self.assertContains(response, '<option value="SSN">SSN</option>', html=True)
+        self.assertContains(response, '<option value="EIN">EIN</option>', html=True)
+
+        invalid_response = self.client.post(
+            reverse("account_create"),
+            {
+                "first_name": "",
+                "middle_name": "",
+                "last_name": "Invalid Picklist",
+                "tax_id_code": "TIN",
+                "tax_id_number": "",
+                "date_of_birth": "",
+                f"custom_field_{self.custom_field.pk}": "",
+            },
+        )
+
+        self.assertEqual(invalid_response.status_code, 200)
+        self.assertFalse(Account.objects.filter(last_name="Invalid Picklist").exists())
+        self.assertContains(invalid_response, "Select a valid choice")
+
     def test_account_detail_starts_read_only_and_can_update_fields(self):
         self.client.login(username="standard", password="complex-pass-123")
         response = self.client.get(self.account.get_absolute_url())
@@ -164,6 +212,8 @@ class AccountAdminTests(TestCase):
         self.assertEqual(add_response.status_code, 200)
         self.assertEqual(change_response.status_code, 200)
         self.assertContains(add_response, "Tax ID code")
+        self.assertContains(add_response, '<option value="SSN">SSN</option>', html=True)
+        self.assertContains(add_response, '<option value="EIN">EIN</option>', html=True)
         self.assertContains(add_response, "Date of birth")
         self.assertContains(change_response, 'name="_save"')
 

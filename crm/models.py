@@ -7,12 +7,20 @@ from django.utils.text import slugify
 class Account(models.Model):
     """A customer account record tracked in the CRM."""
 
-    first_name = models.CharField(max_length=100)
+    SSN = "SSN"
+    EIN = "EIN"
+
+    TAX_ID_CODE_CHOICES = [
+        (SSN, "SSN"),
+        (EIN, "EIN"),
+    ]
+
+    first_name = models.CharField(blank=True, max_length=100)
     last_name = models.CharField(max_length=100)
     middle_name = models.CharField(blank=True, max_length=100)
-    tax_id_code = models.CharField("Tax ID code", max_length=32)
-    tax_id_number = models.CharField("Tax ID number", max_length=64)
-    date_of_birth = models.DateField()
+    tax_id_code = models.CharField("Tax ID code", blank=True, choices=TAX_ID_CODE_CHOICES, max_length=32)
+    tax_id_number = models.CharField("Tax ID number", blank=True, max_length=64)
+    date_of_birth = models.DateField(blank=True, null=True)
     created_at = models.DateTimeField(auto_now_add=True)
     updated_at = models.DateTimeField(auto_now=True)
 
