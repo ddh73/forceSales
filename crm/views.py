@@ -1,6 +1,9 @@
 from django.contrib import messages
 from django.contrib.auth.mixins import LoginRequiredMixin
+from django.db.models import Q
+from django.http import JsonResponse
 from django.shortcuts import get_object_or_404, redirect
+from django.views import View
 from django.views.generic import ListView, TemplateView
 
 from .forms import AccountForm, OpportunityForm, OpportunityLineItemFormSet
@@ -29,6 +32,25 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context["account_count"] = Account.objects.count()
         context["opportunity_count"] = Opportunity.objects.count()
         return context
+
+
+class AccountSearchView(LoginRequiredMixin, View):
+    """Return matching accounts for opportunity account lookup."""
+
+    def get(self, request, *args, **kwargs):
+        query = request.GET.get("q", "").strip()
+        accounts = Account.objects.none()
+        if query:
+            accounts = Account.objects.all()
+            for term in query.split():
+                accounts = accounts.filter(
+                    Q(first_name__icontains=term)
+                    | Q(middle_name__icontains=term)
+                    | Q(last_name__icontains=term)
+                    | Q(tax_id_number__icontains=term)
+                )
+        results = [{"id": account.pk, "label": account.full_name} for account in accounts[:10]]
+        return JsonResponse({"results": results})
 
 
 class AccountListView(LoginRequiredMixin, ListView):
@@ -109,7 +131,7 @@ class OpportunityCreateView(LoginRequiredMixin, TemplateView):
         form = OpportunityForm(request.POST)
         if form.is_valid():
             opportunity = form.save()
-            messages.success(request, "Opportunity created. Add product line items to build the amount.")
+            messages.success(request, "Opportunity created. Add product line items.")
             return redirect(opportunity.get_absolute_url())
         return self.render_to_response(self.get_context_data(form=form))
 

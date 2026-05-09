@@ -16,14 +16,19 @@
     <form class="record-form" method="post" novalidate>
         {% csrf_token %}
         {% for field in form %}
-            <div class="record-field{% if field.errors %} has-errors{% endif %}">
-                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+            {% if field.is_hidden %}
                 {{ field }}
-                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
-                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
-            </div>
+            {% else %}
+                <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endif %}
         {% endfor %}
         <button class="save-button" type="submit">Create opportunity</button>
     </form>
 </section>
+{% include "crm/includes/account_search_script.html" %}
 {% endblock %}

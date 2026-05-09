@@ -1,0 +1,78 @@
+<script>
+    document.querySelectorAll("input[data-account-search-url]").forEach((searchInput) => {
+        const hiddenInput = searchInput.form.querySelector('input[name="account"]');
+        const results = document.createElement("div");
+        const searchUrl = searchInput.dataset.accountSearchUrl;
+        let selectedName = searchInput.dataset.selectedName || searchInput.value;
+        let debounceTimer;
+
+        searchInput.parentNode.classList.add("has-autocomplete");
+        results.className = "autocomplete-results";
+        results.hidden = true;
+        searchInput.parentNode.appendChild(results);
+
+        function clearResults() {
+            results.innerHTML = "";
+            results.hidden = true;
+        }
+
+        function chooseAccount(account) {
+            hiddenInput.value = account.id;
+            searchInput.value = account.label;
+            selectedName = account.label;
+            searchInput.dataset.selectedName = account.label;
+            clearResults();
+        }
+
+        function renderResults(accounts) {
+            results.innerHTML = "";
+            if (!accounts.length) {
+                const empty = document.createElement("p");
+                empty.className = "autocomplete-empty";
+                empty.textContent = "No matching accounts";
+                results.appendChild(empty);
+                results.hidden = false;
+                return;
+            }
+
+            accounts.forEach((account) => {
+                const button = document.createElement("button");
+                button.className = "autocomplete-option";
+                button.type = "button";
+                button.textContent = account.label;
+                button.addEventListener("mousedown", (event) => {
+                    event.preventDefault();
+                    chooseAccount(account);
+                });
+                results.appendChild(button);
+            });
+            results.hidden = false;
+        }
+
+        searchInput.addEventListener("input", () => {
+            if (searchInput.value !== selectedName) {
+                hiddenInput.value = "";
+            }
+
+            window.clearTimeout(debounceTimer);
+            const query = searchInput.value.trim();
+            if (query.length < 2) {
+                clearResults();
+                return;
+            }
+
+            debounceTimer = window.setTimeout(() => {
+                const url = new URL(searchUrl, window.location.origin);
+                url.searchParams.set("q", query);
+                fetch(url, {headers: {"X-Requested-With": "XMLHttpRequest"}})
+                    .then((response) => response.json())
+                    .then((data) => renderResults(data.results || []))
+                    .catch(() => clearResults());
+            }, 180);
+        });
+
+        searchInput.addEventListener("blur", () => {
+            window.setTimeout(clearResults, 150);
+        });
+    });
+</script>

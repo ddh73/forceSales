@@ -289,6 +289,11 @@ class OpportunityViewTests(TestCase):
         self.client.login(username="seller", password="complex-pass-123")
 
         response = self.client.get(reverse("opportunity_create"))
+        self.assertContains(response, 'name="account_search"')
+        self.assertContains(response, 'placeholder="Search accounts by name"')
+        self.assertContains(response, 'data-account-search-url="/accounts/search/"')
+        self.assertContains(response, 'type="hidden" name="account"')
+        self.assertNotContains(response, '<select name="account"')
         self.assertContains(response, '<option value="in_progress" selected>In progress</option>', html=True)
         self.assertContains(response, '<option value="closed_won">Closed Won</option>', html=True)
         self.assertContains(response, '<option value="closed_lost">Closed Lost</option>', html=True)
@@ -308,6 +313,36 @@ class OpportunityViewTests(TestCase):
         self.assertRedirects(create_response, opportunity.get_absolute_url())
         self.assertEqual(opportunity.stage, Opportunity.CLOSED_WON)
 
+    def test_account_search_requires_login_and_returns_matches(self):
+        login_response = self.client.get(reverse("account_search"), {"q": "Dorothy"})
+        self.assertEqual(login_response.status_code, 302)
+        self.assertIn(reverse("login"), login_response["Location"])
+
+        self.client.login(username="seller", password="complex-pass-123")
+        response = self.client.get(reverse("account_search"), {"q": "Dorothy Vaughan"})
+
+        self.assertEqual(response.status_code, 200)
+        self.assertEqual(response.json(), {"results": [{"id": self.account.pk, "label": "Dorothy Vaughan"}]})
+
+    def test_typed_account_without_search_selection_is_invalid(self):
+        self.client.login(username="seller", password="complex-pass-123")
+
+        response = self.client.post(
+            reverse("opportunity_create"),
+            {
+                "name": "Unmatched account deal",
+                "account_search": "Dorothy Vaughan",
+                "account": "",
+                "stage": Opportunity.IN_PROGRESS,
+                "close_date": "",
+                "description": "",
+            },
+        )
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Select an account from the search results.")
+        self.assertFalse(Opportunity.objects.filter(name="Unmatched account deal").exists())
+
     def test_opportunity_detail_manages_product_backed_line_items(self):
         self.client.login(username="seller", password="complex-pass-123")
         response = self.client.get(self.opportunity.get_absolute_url())
@@ -317,6 +352,10 @@ class OpportunityViewTests(TestCase):
         self.assertContains(response, "Product name")
         self.assertContains(response, "Description")
         self.assertContains(response, "Implementation Package")
+        self.assertContains(response, 'name="account_search"')
+        self.assertContains(response, 'value="Dorothy Vaughan"')
+        self.assertContains(response, f'type="hidden" name="account" value="{self.account.pk}"')
+        self.assertNotContains(response, '<select name="account"')
         self.assertNotContains(response, "Quantity")
         self.assertNotContains(response, "Sales price")
         self.assertNotContains(response, "$5000.00")
