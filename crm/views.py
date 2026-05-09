@@ -20,17 +20,17 @@ class HomeView(TemplateView):
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """Starter authenticated dashboard with admin and standard-user views."""
+    """Authenticated dashboard focused on useful CRM work lists."""
 
     template_name = "crm/dashboard.html"
 
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
-        user = self.request.user
-        context["is_crm_admin"] = user.is_superuser or user.groups.filter(name="CRM Admin").exists()
-        context["is_standard_user"] = user.groups.filter(name="Standard User").exists()
-        context["account_count"] = Account.objects.count()
-        context["opportunity_count"] = Opportunity.objects.count()
+        context["open_opportunities"] = (
+            Opportunity.objects.filter(stage=Opportunity.IN_PROGRESS)
+            .select_related("account")
+            .prefetch_related("line_items__product")[:10]
+        )
         return context
 
 
