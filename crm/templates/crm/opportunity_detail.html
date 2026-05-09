@@ -17,7 +17,6 @@
     </div>
 
     <form method="post" novalidate>
-        {% if not can_edit_opportunity %}<p class="edit-hint">You have read-only access to this opportunity.</p>{% endif %}
         {% csrf_token %}
         <div class="record-form">
             {% for field in form %}
@@ -37,7 +36,6 @@
         <div class="subsection-heading">
             <div>
                 <h2>Opportunity line items</h2>
-                <p>Add the product name and an optional description for each line item. Product records are maintained by admins.</p>
             </div>
             {% if not has_products %}<p class="edit-hint">No active products are available yet. Ask an admin to add products before adding line items.</p>{% endif %}
         </div>

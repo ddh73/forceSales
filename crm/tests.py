@@ -448,6 +448,9 @@ class OpportunityViewTests(TestCase):
         self.assertNotContains(response, "$5000.00")
         self.assertNotContains(response, "Manage products")
         self.assertNotContains(response, "Create a product first")
+        self.assertNotContains(response, "Add the product name and an optional description")
+        self.assertNotContains(response, "Choose the product for this opportunity.")
+        self.assertNotContains(response, "Optional notes for this opportunity product.")
 
         update_response = self.client.post(
             self.opportunity.get_absolute_url(),

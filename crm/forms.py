@@ -137,8 +137,6 @@ class OpportunityLineItemForm(forms.ModelForm):
         super().__init__(*args, **kwargs)
         self.fields["product"].queryset = Product.objects.filter(active=True).order_by("name")
         self.fields["product"].label = "Product name"
-        self.fields["product"].help_text = "Choose the product for this opportunity."
-        self.fields["description"].help_text = "Optional notes for this opportunity product."
 
 
 OpportunityLineItemFormSet = forms.inlineformset_factory(
