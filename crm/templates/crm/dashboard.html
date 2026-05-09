@@ -1,37 +1,33 @@
 {% extends "crm/base.html" %}
 
-{% block title %}Dashboard | Force Sales{% endblock %}
+{% block title %}Dashboard | {{ site_branding.name }}{% endblock %}
 
 {% block content %}
 <section class="hero-card">
-    <p class="eyebrow">CRM starter</p>
-    <h1>Welcome, {{ user.get_username }}</h1>
-    <p class="lead">This is the protected starting point for your Salesforce-style Django application.</p>
+    <p class="eyebrow">Dashboard</p>
+    <h1>{{ site_branding.name }}</h1>
 </section>
 
 <section class="grid">
     <article class="panel">
-        <h2>Your role</h2>
+        <h2>Role</h2>
         {% if is_crm_admin %}
             <p class="badge admin">Admin</p>
-            <p>You can manage users through Django admin and shape CRM data as features are added.</p>
-            <a class="button-link" href="{% url 'admin:index' %}">Open admin console</a>
+            <a class="button-link" href="{% url 'admin:index' %}">Open admin</a>
         {% elif is_standard_user %}
             <p class="badge user">Standard user</p>
-            <p>You can access the CRM dashboard and will receive access to sales workflows as they are built.</p>
         {% else %}
-            <p class="badge user">Authenticated user</p>
-            <p>Ask an admin to place this account in the <strong>CRM Admin</strong> or <strong>Standard User</strong> group.</p>
+            <p class="badge user">User</p>
         {% endif %}
     </article>
 
     <article class="panel">
-        <h2>Next CRM modules</h2>
-        <ul class="feature-list">
-            <li>Accounts and companies</li>
-            <li>Contacts and leads</li>
-            <li>Opportunities and pipeline stages</li>
-            <li>Tasks, notes, and activity history</li>
+        <h2>CRM</h2>
+        <ul class="feature-list compact">
+            <li>Accounts</li>
+            <li>Contacts</li>
+            <li>Leads</li>
+            <li>Opportunities</li>
         </ul>
     </article>
 </section>

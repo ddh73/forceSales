@@ -4,32 +4,16 @@
 {% block body_class %}auth-page{% endblock %}
 
 {% block content %}
-<section class="auth-layout" aria-labelledby="login-heading">
-    <aside class="auth-showcase">
-        <div class="showcase-orb orb-one" aria-hidden="true"></div>
-        <div class="showcase-orb orb-two" aria-hidden="true"></div>
-        <p class="eyebrow">Private CRM workspace</p>
-        <h1 id="login-heading">Welcome to {{ site_branding.name }}</h1>
-        <p class="lead">Manage customers, pipeline activity, and team access from one secure sales hub.</p>
-        <ul class="login-highlights" aria-label="CRM highlights">
-            <li>Admin and standard-user access</li>
-            <li>Protected dashboards for your team</li>
-            <li>Azure-ready deployment settings</li>
-        </ul>
-    </aside>
-
+<section class="login-shell" aria-labelledby="login-heading">
     <section class="auth-card" aria-label="Login form">
-        <div class="auth-card-header">
+        <div class="login-brand">
             <span class="brand-mark large" aria-hidden="true">{{ site_branding.name|first }}</span>
-            <div>
-                <p class="eyebrow">Sign in</p>
-                <h2>Access your CRM</h2>
-            </div>
+            <h1 id="login-heading">{{ site_branding.name }}</h1>
+            <p class="login-subtitle">Log in</p>
         </div>
-        <p class="muted">Use an admin or standard-user account created by your site administrator.</p>
 
         {% if form.errors %}
-            <p class="error">Your username and password did not match. Please try again.</p>
+            <p class="error">Invalid username or password.</p>
         {% endif %}
 
         <form method="post" class="stacked-form">
@@ -41,7 +25,7 @@
             {{ form.password }}
 
             <input type="hidden" name="next" value="{{ next }}">
-            <button type="submit">Log in securely</button>
+            <button type="submit">Log in</button>
         </form>
     </section>
 </section>
