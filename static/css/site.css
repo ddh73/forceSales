@@ -446,6 +446,10 @@ button:hover,
     justify-self: start;
 }
 
+.save-button.is-hidden {
+    display: none;
+}
+
 .save-button:disabled {
     cursor: not-allowed;
     filter: grayscale(0.7);

@@ -116,7 +116,8 @@ class AccountViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertNotContains(response, "Fields start read-only")
         self.assertContains(response, 'field.setAttribute("readonly", "readonly")')
-        self.assertContains(response, '<button class="save-button" type="submit" hidden>Save changes</button>', html=True)
+        self.assertContains(response, '<button class="save-button is-hidden" type="submit">Save changes</button>', html=True)
+        self.assertContains(response, 'saveButton.classList.remove("is-hidden")')
         self.assertContains(response, "123-45-6789")
         self.assertContains(response, "Preferred Branch")
         self.assertContains(response, "London")
@@ -145,7 +146,7 @@ class AccountViewTests(TestCase):
 
 
 class AccountAdminTests(TestCase):
-    def test_staff_cannot_add_or_change_accounts_in_admin(self):
+    def test_staff_can_add_and_change_accounts_in_admin(self):
         User.objects.create_superuser(username="admin", password="complex-pass-123")
         self.client.login(username="admin", password="complex-pass-123")
         account = Account.objects.create(
@@ -160,11 +161,11 @@ class AccountAdminTests(TestCase):
         add_response = self.client.get(reverse("admin:crm_account_add"))
         change_response = self.client.get(reverse("admin:crm_account_change", args=[account.pk]))
 
-        self.assertEqual(add_response.status_code, 403)
+        self.assertEqual(add_response.status_code, 200)
         self.assertEqual(change_response.status_code, 200)
-        self.assertNotContains(change_response, 'name="_save"')
-        self.assertNotContains(change_response, 'name="_addanother"')
-        self.assertNotContains(change_response, 'class="deletelink"')
+        self.assertContains(add_response, "Tax ID code")
+        self.assertContains(add_response, "Date of birth")
+        self.assertContains(change_response, 'name="_save"')
 
     def test_staff_can_manage_account_field_definitions_in_admin(self):
         User.objects.create_superuser(username="admin", password="complex-pass-123")

@@ -23,18 +23,26 @@
                 {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
             </div>
         {% endfor %}
-        <button class="save-button" type="submit" hidden>Save changes</button>
+        <button class="save-button is-hidden" type="submit">Save changes</button>
     </form>
 </section>
 
 <script>
-    document.querySelectorAll(".record-form input, .record-form textarea, .record-form select").forEach((field) => {
+    const recordForm = document.querySelector(".record-form");
+    const saveButton = document.querySelector(".save-button");
+    const editableFields = recordForm.querySelectorAll("input, textarea, select");
+
+    function startEditing(field) {
+        field.removeAttribute("readonly");
+        field.classList.add("is-editing");
+        saveButton.classList.remove("is-hidden");
+    }
+
+    editableFields.forEach((field) => {
         field.setAttribute("readonly", "readonly");
-        field.addEventListener("click", () => {
-            field.removeAttribute("readonly");
-            field.classList.add("is-editing");
-            document.querySelector(".save-button").removeAttribute("hidden");
-        });
+        field.addEventListener("click", () => startEditing(field));
+        field.addEventListener("focus", () => startEditing(field));
+        field.addEventListener("input", () => startEditing(field));
     });
 </script>
 {% endblock %}
