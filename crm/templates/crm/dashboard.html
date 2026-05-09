@@ -36,10 +36,14 @@
                 <span class="tab-title">Leads</span>
                 <span class="tab-meta">Coming soon</span>
             </span>
-            <span class="tab-card disabled" aria-disabled="true">
+            <a class="tab-card" href="{% url 'opportunity_list' %}">
                 <span class="tab-title">Opportunities</span>
-                <span class="tab-meta">Coming soon</span>
-            </span>
+                <span class="tab-meta">{{ opportunity_count }} total • Track stages and product line items</span>
+            </a>
+            <a class="tab-card" href="{% url 'product_list' %}">
+                <span class="tab-title">Products</span>
+                <span class="tab-meta">{{ product_count }} total • Catalog for opportunity line items</span>
+            </a>
         </div>
     </article>
 </section>

@@ -1,0 +1,35 @@
+{% extends "crm/base.html" %}
+
+{% block title %}Products | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero split-hero">
+    <div>
+        <p class="eyebrow">Products</p>
+        <h1>Product catalog</h1>
+    </div>
+    <a class="button-link" href="{% url 'product_create' %}">New product</a>
+</section>
+
+<section class="panel">
+    {% if products %}
+        <div class="record-list" aria-label="Product list">
+            {% for product in products %}
+                <a class="record-row" href="{{ product.get_absolute_url }}">
+                    <span>
+                        <strong>{{ product.name }}</strong>
+                        <small>{{ product.product_code|default:"No product code" }} • ${{ product.list_price }}{% if not product.active %} • Inactive{% endif %}</small>
+                    </span>
+                    <span class="record-action">Open product</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No products yet</h2>
+            <p>Create products first so opportunity line items can start from a product.</p>
+            <a class="button-link" href="{% url 'product_create' %}">Create product</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

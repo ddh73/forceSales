@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group, User
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Account, AccountField, AccountFieldValue
+from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
 
 
 class DashboardAccessTests(TestCase):
@@ -248,3 +248,148 @@ class BrandingTests(TestCase):
         self.assertContains(response, "--accent: #333333")
         self.assertNotContains(response, "Manage customers")
         self.assertContains(response, "Log in")
+
+
+class OpportunityViewTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.user = User.objects.create_user(username="seller", password="complex-pass-123")
+        cls.account = Account.objects.create(first_name="Dorothy", last_name="Vaughan")
+        cls.product = Product.objects.create(name="Implementation Package", product_code="IP-001", list_price="2500.00")
+        cls.opportunity = Opportunity.objects.create(
+            name="Vaughan expansion",
+            account=cls.account,
+            stage=Opportunity.IN_PROGRESS,
+        )
+        OpportunityLineItem.objects.create(
+            opportunity=cls.opportunity,
+            product=cls.product,
+            quantity="2.00",
+            sales_price="2500.00",
+        )
+
+    def test_opportunity_list_requires_login(self):
+        response = self.client.get(reverse("opportunity_list"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response["Location"])
+
+    def test_dashboard_links_to_opportunities_and_products(self):
+        self.client.login(username="seller", password="complex-pass-123")
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("opportunity_list"))
+        self.assertContains(response, reverse("product_list"))
+        self.assertContains(response, "Track stages and product line items")
+
+    def test_user_can_create_product_for_line_items(self):
+        self.client.login(username="seller", password="complex-pass-123")
+
+        response = self.client.post(
+            reverse("product_create"),
+            {
+                "name": "Training Subscription",
+                "product_code": "",
+                "description": "Annual training access",
+                "list_price": "99.00",
+                "active": "on",
+            },
+        )
+
+        product = Product.objects.get(name="Training Subscription")
+        self.assertRedirects(response, product.get_absolute_url())
+        self.assertIsNone(product.product_code)
+
+    def test_user_can_create_opportunity_with_stage_picklist(self):
+        self.client.login(username="seller", password="complex-pass-123")
+
+        response = self.client.get(reverse("opportunity_create"))
+        self.assertContains(response, '<option value="in_progress" selected>In progress</option>', html=True)
+        self.assertContains(response, '<option value="closed_won">Closed Won</option>', html=True)
+        self.assertContains(response, '<option value="closed_lost">Closed Lost</option>', html=True)
+
+        create_response = self.client.post(
+            reverse("opportunity_create"),
+            {
+                "name": "New services deal",
+                "account": self.account.pk,
+                "stage": Opportunity.CLOSED_WON,
+                "close_date": "2026-05-31",
+                "description": "Services expansion",
+            },
+        )
+
+        opportunity = Opportunity.objects.get(name="New services deal")
+        self.assertRedirects(create_response, opportunity.get_absolute_url())
+        self.assertEqual(opportunity.stage, Opportunity.CLOSED_WON)
+
+    def test_opportunity_detail_manages_product_backed_line_items(self):
+        self.client.login(username="seller", password="complex-pass-123")
+        response = self.client.get(self.opportunity.get_absolute_url())
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Opportunity line items")
+        self.assertContains(response, "Each line item starts from an active product")
+        self.assertContains(response, "Implementation Package")
+        self.assertContains(response, "$5000.00")
+
+        update_response = self.client.post(
+            self.opportunity.get_absolute_url(),
+            {
+                "name": "Vaughan expansion updated",
+                "account": self.account.pk,
+                "stage": Opportunity.CLOSED_LOST,
+                "close_date": "",
+                "description": "",
+                "line_items-TOTAL_FORMS": "2",
+                "line_items-INITIAL_FORMS": "1",
+                "line_items-MIN_NUM_FORMS": "0",
+                "line_items-MAX_NUM_FORMS": "1000",
+                "line_items-0-id": self.opportunity.line_items.first().pk,
+                "line_items-0-opportunity": self.opportunity.pk,
+                "line_items-0-product": self.product.pk,
+                "line_items-0-quantity": "3.00",
+                "line_items-0-sales_price": "",
+                "line_items-0-description": "Uses product list price",
+                "line_items-1-id": "",
+                "line_items-1-opportunity": self.opportunity.pk,
+                "line_items-1-product": "",
+                "line_items-1-quantity": "1.00",
+                "line_items-1-sales_price": "",
+                "line_items-1-description": "",
+            },
+        )
+
+        self.assertRedirects(update_response, self.opportunity.get_absolute_url())
+        self.opportunity.refresh_from_db()
+        line_item = self.opportunity.line_items.get()
+        self.assertEqual(self.opportunity.stage, Opportunity.CLOSED_LOST)
+        self.product.refresh_from_db()
+        self.assertEqual(line_item.product, self.product)
+        self.assertEqual(line_item.sales_price, self.product.list_price)
+        self.assertEqual(line_item.total_price, self.product.list_price * 3)
+
+
+class OpportunityAdminTests(TestCase):
+    def test_staff_can_manage_opportunities_products_and_line_items(self):
+        User.objects.create_superuser(username="admin2", password="complex-pass-123")
+        self.client.login(username="admin2", password="complex-pass-123")
+        product = Product.objects.create(name="Support Plan", product_code="SUP", list_price="500.00")
+        opportunity = Opportunity.objects.create(name="Support renewal", stage=Opportunity.IN_PROGRESS)
+        OpportunityLineItem.objects.create(
+            opportunity=opportunity,
+            product=product,
+            quantity="1.00",
+            sales_price="500.00",
+        )
+
+        product_response = self.client.get(reverse("admin:crm_product_add"))
+        opportunity_response = self.client.get(reverse("admin:crm_opportunity_change", args=[opportunity.pk]))
+
+        self.assertEqual(product_response.status_code, 200)
+        self.assertEqual(opportunity_response.status_code, 200)
+        self.assertContains(product_response, "List price")
+        self.assertContains(opportunity_response, "Opportunity line items")
+        self.assertContains(opportunity_response, "Closed Won")

@@ -495,3 +495,43 @@ button:hover,
     box-shadow: 0 0 0 4px rgba(53, 161, 255, 0.18);
     outline: none;
 }
+
+.stacked-panel form {
+    display: grid;
+    gap: 1.25rem;
+}
+
+.subsection-heading {
+    align-items: center;
+    border-top: 1px solid rgba(11, 92, 171, 0.14);
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+    padding-top: 1.25rem;
+}
+
+.subsection-heading h2,
+.subsection-heading p {
+    margin-bottom: 0;
+}
+
+.subsection-heading p {
+    color: var(--muted);
+    margin-top: 0.35rem;
+}
+
+.line-item-list {
+    display: grid;
+    gap: 1rem;
+}
+
+.line-item-card {
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(11, 92, 171, 0.14);
+    border-radius: 1rem;
+    display: grid;
+    gap: 1rem;
+    grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+    padding: 1rem;
+}

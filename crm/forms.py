@@ -1,6 +1,6 @@
 from django import forms
 
-from .models import Account, AccountField, AccountFieldValue
+from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
 
 
 class AccountForm(forms.ModelForm):
@@ -80,3 +80,55 @@ class AccountForm(forms.ModelForm):
 
     def custom_field_name(self, account_field):
         return f"{self.custom_field_prefix}{account_field.pk}"
+
+
+class ProductForm(forms.ModelForm):
+    class Meta:
+        model = Product
+        fields = ["name", "product_code", "description", "list_price", "active"]
+        widgets = {
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def clean_product_code(self):
+        return self.cleaned_data.get("product_code") or None
+
+
+class OpportunityForm(forms.ModelForm):
+    class Meta:
+        model = Opportunity
+        fields = ["name", "account", "stage", "close_date", "description"]
+        widgets = {
+            "close_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+
+class OpportunityLineItemForm(forms.ModelForm):
+    class Meta:
+        model = OpportunityLineItem
+        fields = ["product", "quantity", "sales_price", "description"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = Product.objects.filter(active=True).order_by("name")
+        self.fields["product"].help_text = "Choose the product this line item starts from."
+        self.fields["sales_price"].help_text = "Defaults to the product list price when left blank."
+        self.fields["sales_price"].required = False
+
+    def clean(self):
+        cleaned_data = super().clean()
+        product = cleaned_data.get("product")
+        sales_price = cleaned_data.get("sales_price")
+        if product and sales_price is None:
+            cleaned_data["sales_price"] = product.list_price
+        return cleaned_data
+
+
+OpportunityLineItemFormSet = forms.inlineformset_factory(
+    Opportunity,
+    OpportunityLineItem,
+    form=OpportunityLineItemForm,
+    extra=1,
+    can_delete=True,
+)

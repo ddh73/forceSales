@@ -1,0 +1,29 @@
+{% extends "crm/base.html" %}
+
+{% block title %}New Opportunity | Opportunities | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <p class="eyebrow">Opportunities</p>
+    <h1>New opportunity</h1>
+</section>
+
+<section class="panel">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'opportunity_list' %}">← Back to opportunities</a>
+    </div>
+
+    <form class="record-form" method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <button class="save-button" type="submit">Create opportunity</button>
+    </form>
+</section>
+{% endblock %}

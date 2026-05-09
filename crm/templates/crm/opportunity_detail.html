@@ -1,0 +1,61 @@
+{% extends "crm/base.html" %}
+
+{% block title %}{{ opportunity.name }} | Opportunities | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero split-hero">
+    <div>
+        <p class="eyebrow">Opportunity</p>
+        <h1>{{ opportunity.name }}</h1>
+    </div>
+    <span class="badge user">{{ opportunity.get_stage_display }} • ${{ opportunity.amount }}</span>
+</section>
+
+<section class="panel stacked-panel">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'opportunity_list' %}">← Back to opportunities</a>
+        <a class="back-link" href="{% url 'product_list' %}">Manage products</a>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="record-form">
+            {% for field in form %}
+                <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                    <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                    {{ field }}
+                    {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                    {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+                </div>
+            {% endfor %}
+        </div>
+
+        <div class="subsection-heading">
+            <div>
+                <h2>Opportunity line items</h2>
+                <p>Each line item starts from an active product and contributes quantity × sales price to the opportunity amount.</p>
+            </div>
+            {% if not has_products %}<a class="button-link" href="{% url 'product_create' %}">Create a product first</a>{% endif %}
+        </div>
+
+        {{ line_item_formset.management_form }}
+        {% if line_item_formset.non_form_errors %}<div class="field-errors">{{ line_item_formset.non_form_errors }}</div>{% endif %}
+        <div class="line-item-list">
+            {% for line_form in line_item_formset %}
+                <div class="line-item-card">
+                    {% for hidden in line_form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {% for field in line_form.visible_fields %}
+                        <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                            {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <button class="save-button" type="submit">Save opportunity</button>
+    </form>
+</section>
+{% endblock %}
