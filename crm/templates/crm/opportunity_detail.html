@@ -1,0 +1,65 @@
+{% extends "crm/base.html" %}
+
+{% block title %}{{ opportunity.name }} | Opportunities | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero split-hero">
+    <div>
+        <p class="eyebrow">Opportunity</p>
+        <h1>{{ opportunity.name }}</h1>
+    </div>
+    <span class="badge user">{{ opportunity.get_stage_display }}</span>
+</section>
+
+<section class="panel stacked-panel">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'opportunity_list' %}">← Back to opportunities</a>
+    </div>
+
+    <form method="post" novalidate>
+        {% csrf_token %}
+        <div class="record-form">
+            {% for field in form %}
+                {% if field.is_hidden %}
+                    {{ field }}
+                {% else %}
+                    <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                        <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                        {{ field }}
+                        {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                        {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+                    </div>
+                {% endif %}
+            {% endfor %}
+        </div>
+
+        <div class="subsection-heading">
+            <div>
+                <h2>Opportunity line items</h2>
+                <p>Add the product name and an optional description for each line item. Product records are maintained by admins.</p>
+            </div>
+            {% if not has_products %}<p class="edit-hint">No active products are available yet. Ask an admin to add products before adding line items.</p>{% endif %}
+        </div>
+
+        {{ line_item_formset.management_form }}
+        {% if line_item_formset.non_form_errors %}<div class="field-errors">{{ line_item_formset.non_form_errors }}</div>{% endif %}
+        <div class="line-item-list">
+            {% for line_form in line_item_formset %}
+                <div class="line-item-card">
+                    {% for hidden in line_form.hidden_fields %}{{ hidden }}{% endfor %}
+                    {% for field in line_form.visible_fields %}
+                        <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                            <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                            {{ field }}
+                            {% if field.help_text %}<small class="field-help">{{ field.help_text }}</small>{% endif %}
+                            {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+                        </div>
+                    {% endfor %}
+                </div>
+            {% endfor %}
+        </div>
+        <button class="save-button" type="submit">Save opportunity</button>
+    </form>
+</section>
+{% include "crm/includes/account_search_script.html" %}
+{% endblock %}

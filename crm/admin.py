@@ -1,6 +1,6 @@
 from django.contrib import admin
 
-from .models import Account, AccountField, AccountFieldValue
+from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
 
 
 class AccountFieldValueInline(admin.TabularInline):
@@ -49,3 +49,31 @@ class AccountFieldAdmin(admin.ModelAdmin):
     ordering = ("display_order", "label")
     prepopulated_fields = {"api_name": ("label",)}
     search_fields = ("label", "api_name")
+
+
+@admin.register(Product)
+class ProductAdmin(admin.ModelAdmin):
+    list_display = ("name", "active", "updated_at")
+    list_editable = ("active",)
+    list_filter = ("active",)
+    search_fields = ("name", "description")
+
+
+class OpportunityLineItemInline(admin.TabularInline):
+    extra = 1
+    model = OpportunityLineItem
+
+
+@admin.register(Opportunity)
+class OpportunityAdmin(admin.ModelAdmin):
+    inlines = (OpportunityLineItemInline,)
+    list_display = ("name", "account", "stage", "close_date", "updated_at")
+    list_filter = ("stage", "close_date")
+    search_fields = ("name", "account__first_name", "account__last_name", "description")
+
+
+@admin.register(OpportunityLineItem)
+class OpportunityLineItemAdmin(admin.ModelAdmin):
+    list_display = ("opportunity", "product", "description", "updated_at")
+    list_filter = ("product",)
+    search_fields = ("opportunity__name", "product__name", "description")

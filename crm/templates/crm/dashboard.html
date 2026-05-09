@@ -22,24 +22,19 @@
     </article>
 
     <article class="panel">
-        <h2>CRM</h2>
-        <div class="tab-list" aria-label="CRM objects">
+        <div class="tab-list" aria-label="Objects">
             <a class="tab-card" href="{% url 'account_list' %}">
                 <span class="tab-title">Accounts</span>
-                <span class="tab-meta">{{ account_count }} total • Create and edit records</span>
             </a>
             <span class="tab-card disabled" aria-disabled="true">
                 <span class="tab-title">Contacts</span>
-                <span class="tab-meta">Coming soon</span>
             </span>
             <span class="tab-card disabled" aria-disabled="true">
                 <span class="tab-title">Leads</span>
-                <span class="tab-meta">Coming soon</span>
             </span>
-            <span class="tab-card disabled" aria-disabled="true">
+            <a class="tab-card" href="{% url 'opportunity_list' %}">
                 <span class="tab-title">Opportunities</span>
-                <span class="tab-meta">Coming soon</span>
-            </span>
+            </a>
         </div>
     </article>
 </section>

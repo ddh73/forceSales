@@ -1,6 +1,7 @@
 from django import forms
+from django.urls import reverse_lazy
 
-from .models import Account, AccountField, AccountFieldValue
+from .models import Account, AccountField, AccountFieldValue, Opportunity, OpportunityLineItem, Product
 
 
 class AccountForm(forms.ModelForm):
@@ -80,3 +81,65 @@ class AccountForm(forms.ModelForm):
 
     def custom_field_name(self, account_field):
         return f"{self.custom_field_prefix}{account_field.pk}"
+
+
+class OpportunityForm(forms.ModelForm):
+    account_search = forms.CharField(
+        label="Account",
+        required=False,
+        widget=forms.TextInput(
+            attrs={
+                "autocomplete": "off",
+                "data-account-search-url": reverse_lazy("account_search"),
+                "placeholder": "Search accounts by name",
+            }
+        ),
+    )
+
+    class Meta:
+        model = Opportunity
+        fields = ["name", "account", "stage", "close_date", "description"]
+        widgets = {
+            "account": forms.HiddenInput(),
+            "close_date": forms.DateInput(format="%Y-%m-%d", attrs={"type": "date"}),
+            "description": forms.Textarea(attrs={"rows": 3}),
+        }
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["account"].queryset = Account.objects.all()
+        self.fields["account"].required = False
+        if self.instance and self.instance.pk and self.instance.account:
+            self.fields["account_search"].initial = self.instance.account.full_name
+            self.fields["account_search"].widget.attrs["data-selected-name"] = self.instance.account.full_name
+        self.order_fields(["name", "account_search", "account", "stage", "close_date", "description"])
+
+    def clean(self):
+        cleaned_data = super().clean()
+        account_search = cleaned_data.get("account_search")
+        account = cleaned_data.get("account")
+        if account_search and not account:
+            self.add_error("account_search", "Select an account from the search results.")
+        return cleaned_data
+
+
+class OpportunityLineItemForm(forms.ModelForm):
+    class Meta:
+        model = OpportunityLineItem
+        fields = ["product", "description"]
+
+    def __init__(self, *args, **kwargs):
+        super().__init__(*args, **kwargs)
+        self.fields["product"].queryset = Product.objects.filter(active=True).order_by("name")
+        self.fields["product"].label = "Product name"
+        self.fields["product"].help_text = "Choose the product for this opportunity."
+        self.fields["description"].help_text = "Optional notes for this opportunity product."
+
+
+OpportunityLineItemFormSet = forms.inlineformset_factory(
+    Opportunity,
+    OpportunityLineItem,
+    form=OpportunityLineItemForm,
+    extra=1,
+    can_delete=False,
+)

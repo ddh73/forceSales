@@ -1,0 +1,35 @@
+{% extends "crm/base.html" %}
+
+{% block title %}Opportunities | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero split-hero">
+    <div>
+        <p class="eyebrow">Opportunities</p>
+        <h1>Opportunity records</h1>
+    </div>
+    <a class="button-link" href="{% url 'opportunity_create' %}">New opportunity</a>
+</section>
+
+<section class="panel">
+    {% if opportunities %}
+        <div class="record-list" aria-label="Opportunity list">
+            {% for opportunity in opportunities %}
+                <a class="record-row" href="{{ opportunity.get_absolute_url }}">
+                    <span>
+                        <strong>{{ opportunity.name }}</strong>
+                        <small>{{ opportunity.get_stage_display }}{% if opportunity.account %} • {{ opportunity.account.full_name }}{% endif %}</small>
+                    </span>
+                    <span class="record-action">Open opportunity</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state">
+            <h2>No opportunities yet</h2>
+            <p>Create the first deal, then add product-backed line items from the opportunity detail page.</p>
+            <a class="button-link" href="{% url 'opportunity_create' %}">Create opportunity</a>
+        </div>
+    {% endif %}
+</section>
+{% endblock %}

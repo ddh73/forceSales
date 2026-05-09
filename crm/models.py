@@ -38,6 +38,69 @@ class Account(models.Model):
         return " ".join(part for part in [self.first_name, self.middle_name, self.last_name] if part)
 
 
+class Product(models.Model):
+    """Admin-managed product option used to start opportunity line items."""
+
+    name = models.CharField(max_length=150)
+    description = models.TextField(blank=True)
+    active = models.BooleanField(default=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["name"]
+
+    def __str__(self):
+        return self.name
+
+
+class Opportunity(models.Model):
+    """Sales deal with Salesforce-style stages and product-backed line items."""
+
+    IN_PROGRESS = "in_progress"
+    CLOSED_WON = "closed_won"
+    CLOSED_LOST = "closed_lost"
+
+    STAGE_CHOICES = [
+        (IN_PROGRESS, "In progress"),
+        (CLOSED_WON, "Closed Won"),
+        (CLOSED_LOST, "Closed Lost"),
+    ]
+
+    name = models.CharField(max_length=150)
+    account = models.ForeignKey(Account, blank=True, null=True, on_delete=models.SET_NULL, related_name="opportunities")
+    stage = models.CharField(choices=STAGE_CHOICES, default=IN_PROGRESS, max_length=32)
+    close_date = models.DateField(blank=True, null=True)
+    description = models.TextField(blank=True)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["-updated_at", "name"]
+
+    def __str__(self):
+        return self.name
+
+    def get_absolute_url(self):
+        return reverse("opportunity_detail", kwargs={"pk": self.pk})
+
+
+class OpportunityLineItem(models.Model):
+    """A product selected for an opportunity with optional notes."""
+
+    opportunity = models.ForeignKey(Opportunity, on_delete=models.CASCADE, related_name="line_items")
+    product = models.ForeignKey(Product, on_delete=models.PROTECT, related_name="opportunity_line_items")
+    description = models.CharField(blank=True, max_length=255)
+    created_at = models.DateTimeField(auto_now_add=True)
+    updated_at = models.DateTimeField(auto_now=True)
+
+    class Meta:
+        ordering = ["product__name", "id"]
+
+    def __str__(self):
+        return self.product.name
+
+
 class AccountField(models.Model):
     """Admin-managed custom field metadata for account records."""
 
