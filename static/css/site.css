@@ -452,3 +452,42 @@ button:hover,
     opacity: 0.58;
     transform: none;
 }
+
+.split-hero {
+    align-items: center;
+    display: flex;
+    flex-wrap: wrap;
+    gap: 1rem;
+    justify-content: space-between;
+}
+
+.field-help {
+    color: var(--muted);
+    font-size: 0.82rem;
+}
+
+.record-field select,
+.record-field textarea {
+    background: rgba(255, 255, 255, 0.74);
+    border: 1px solid rgba(11, 92, 171, 0.18);
+    border-radius: 0.9rem;
+    font: inherit;
+    padding: 0.9rem 1rem;
+    transition: border-color 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+    width: 100%;
+}
+
+.record-field select[readonly],
+.record-field textarea[readonly] {
+    cursor: pointer;
+}
+
+.record-field select.is-editing,
+.record-field textarea.is-editing,
+.record-field select:focus,
+.record-field textarea:focus {
+    background: white;
+    border-color: var(--secondary);
+    box-shadow: 0 0 0 4px rgba(53, 161, 255, 0.18);
+    outline: none;
+}

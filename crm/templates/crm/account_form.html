@@ -1,19 +1,17 @@
 {% extends "crm/base.html" %}
 
-{% block title %}{{ account.full_name }} | Accounts | {{ site_branding.name }}{% endblock %}
+{% block title %}New Account | Accounts | {{ site_branding.name }}{% endblock %}
 
 {% block content %}
 <section class="hero-card compact-hero">
-    <p class="eyebrow">Account</p>
-    <h1>{{ account.full_name }}</h1>
+    <p class="eyebrow">Accounts</p>
+    <h1>New account</h1>
 </section>
 
 <section class="panel">
     <div class="record-toolbar">
         <a class="back-link" href="{% url 'account_list' %}">← Back to accounts</a>
     </div>
-
-    <p class="edit-hint">Fields start read-only. Click a field to edit it, then save your changes.</p>
 
     <form class="record-form" method="post" novalidate>
         {% csrf_token %}
@@ -25,18 +23,7 @@
                 {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
             </div>
         {% endfor %}
-        <button class="save-button" type="submit" disabled>Save changes</button>
+        <button class="save-button" type="submit">Create account</button>
     </form>
 </section>
-
-<script>
-    document.querySelectorAll(".record-form input, .record-form textarea, .record-form select").forEach((field) => {
-        field.setAttribute("readonly", "readonly");
-        field.addEventListener("click", () => {
-            field.removeAttribute("readonly");
-            field.classList.add("is-editing");
-            document.querySelector(".save-button").removeAttribute("disabled");
-        });
-    });
-</script>
 {% endblock %}

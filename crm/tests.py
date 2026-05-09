@@ -4,7 +4,7 @@ from django.contrib.auth.models import Group, User
 from django.test import TestCase, override_settings
 from django.urls import reverse
 
-from .models import Account
+from .models import Account, AccountField, AccountFieldValue
 
 
 class DashboardAccessTests(TestCase):
@@ -47,6 +47,13 @@ class AccountViewTests(TestCase):
             tax_id_number="123-45-6789",
             date_of_birth=date(1815, 12, 10),
         )
+        cls.custom_field = AccountField.objects.create(
+            label="Preferred Branch",
+            field_type=AccountField.TEXT,
+            help_text="Branch assigned to this account.",
+            display_order=1,
+        )
+        AccountFieldValue.objects.create(account=cls.account, field=cls.custom_field, value="London")
 
     def test_account_list_requires_login(self):
         response = self.client.get(reverse("account_list"))
@@ -63,7 +70,7 @@ class AccountViewTests(TestCase):
         self.assertContains(response, reverse("account_list"))
         self.assertContains(response, "1 total")
 
-    def test_account_list_displays_current_accounts(self):
+    def test_account_list_displays_current_accounts_and_create_action(self):
         self.client.login(username="standard", password="complex-pass-123")
 
         response = self.client.get(reverse("account_list"))
@@ -71,6 +78,36 @@ class AccountViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Ada M Lovelace")
         self.assertContains(response, self.account.get_absolute_url())
+        self.assertContains(response, reverse("account_create"))
+        self.assertContains(response, "New account")
+
+    def test_standard_user_can_create_account_with_admin_defined_fields(self):
+        self.client.login(username="standard", password="complex-pass-123")
+        response = self.client.get(reverse("account_create"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Preferred Branch")
+        self.assertContains(response, "Branch assigned to this account.")
+
+        create_response = self.client.post(
+            reverse("account_create"),
+            {
+                "first_name": "Grace",
+                "middle_name": "B",
+                "last_name": "Hopper",
+                "tax_id_code": "SSN",
+                "tax_id_number": "111-22-3333",
+                "date_of_birth": "1906-12-09",
+                f"custom_field_{self.custom_field.pk}": "Arlington",
+            },
+        )
+
+        account = Account.objects.get(first_name="Grace")
+        self.assertRedirects(create_response, account.get_absolute_url())
+        self.assertEqual(
+            AccountFieldValue.objects.get(account=account, field=self.custom_field).value,
+            "Arlington",
+        )
 
     def test_account_detail_starts_read_only_and_can_update_fields(self):
         self.client.login(username="standard", password="complex-pass-123")
@@ -80,6 +117,8 @@ class AccountViewTests(TestCase):
         self.assertContains(response, "Fields start read-only")
         self.assertContains(response, 'field.setAttribute("readonly", "readonly")')
         self.assertContains(response, "123-45-6789")
+        self.assertContains(response, "Preferred Branch")
+        self.assertContains(response, "London")
 
         update_response = self.client.post(
             self.account.get_absolute_url(),
@@ -90,6 +129,7 @@ class AccountViewTests(TestCase):
                 "tax_id_code": "SSN",
                 "tax_id_number": "987-65-4321",
                 "date_of_birth": "1815-12-10",
+                f"custom_field_{self.custom_field.pk}": "Oxford",
             },
         )
 
@@ -97,6 +137,10 @@ class AccountViewTests(TestCase):
         self.account.refresh_from_db()
         self.assertEqual(self.account.first_name, "Augusta Ada")
         self.assertEqual(self.account.tax_id_number, "987-65-4321")
+        self.assertEqual(
+            AccountFieldValue.objects.get(account=self.account, field=self.custom_field).value,
+            "Oxford",
+        )
 
 
 class AccountAdminTests(TestCase):
@@ -109,6 +153,16 @@ class AccountAdminTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, "Tax ID code")
         self.assertContains(response, "Date of birth")
+
+    def test_staff_can_manage_account_field_definitions_in_admin(self):
+        User.objects.create_superuser(username="admin", password="complex-pass-123")
+        self.client.login(username="admin", password="complex-pass-123")
+
+        response = self.client.get(reverse("admin:crm_accountfield_add"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Create and manage custom fields")
+        self.assertContains(response, "Field type")
 
 
 class BrandingTests(TestCase):

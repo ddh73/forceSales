@@ -39,6 +39,25 @@ class AccountListView(LoginRequiredMixin, ListView):
     template_name = "crm/account_list.html"
 
 
+class AccountCreateView(LoginRequiredMixin, TemplateView):
+    """Allow normal users to create account records."""
+
+    template_name = "crm/account_form.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["form"] = kwargs.get("form") or AccountForm()
+        return context
+
+    def post(self, request, *args, **kwargs):
+        form = AccountForm(request.POST)
+        if form.is_valid():
+            account = form.save()
+            messages.success(request, "Account created.")
+            return redirect(account.get_absolute_url())
+        return self.render_to_response(self.get_context_data(form=form))
+
+
 class AccountDetailView(LoginRequiredMixin, TemplateView):
     """Display an account record and allow inline field editing."""
 
