@@ -116,6 +116,7 @@ class Opportunity(models.Model):
 
     class Meta:
         ordering = ["-updated_at", "name"]
+        verbose_name_plural = "opportunities"
 
     def __str__(self):
         return self.name

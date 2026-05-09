@@ -493,6 +493,9 @@ class OpportunityViewTests(TestCase):
 
 
 class OpportunityAdminTests(TestCase):
+    def test_opportunity_admin_uses_correct_plural_name(self):
+        self.assertEqual(Opportunity._meta.verbose_name_plural, "opportunities")
+
     def test_staff_can_manage_opportunities_products_and_line_items(self):
         User.objects.create_superuser(username="admin2", password="complex-pass-123")
         self.client.login(username="admin2", password="complex-pass-123")
