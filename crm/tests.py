@@ -165,6 +165,14 @@ class AccountViewTests(TestCase):
             profile=standard_group,
             content_type=ContentType.objects.get_for_model(Opportunity),
         )
+        opportunity_line_item_permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(OpportunityLineItem),
+        )
+        product_permission = ProfileObjectPermission.objects.get(
+            profile=standard_group,
+            content_type=ContentType.objects.get_for_model(Product),
+        )
 
         self.assertTrue(account_permission.can_read)
         self.assertTrue(account_permission.can_write)
@@ -174,6 +182,14 @@ class AccountViewTests(TestCase):
         self.assertTrue(opportunity_permission.can_write)
         self.assertFalse(opportunity_permission.can_read_all)
         self.assertFalse(opportunity_permission.can_edit_all)
+        self.assertTrue(opportunity_line_item_permission.can_read)
+        self.assertTrue(opportunity_line_item_permission.can_write)
+        self.assertFalse(opportunity_line_item_permission.can_read_all)
+        self.assertFalse(opportunity_line_item_permission.can_edit_all)
+        self.assertTrue(product_permission.can_read)
+        self.assertFalse(product_permission.can_write)
+        self.assertFalse(product_permission.can_read_all)
+        self.assertFalse(product_permission.can_edit_all)
 
     def test_standard_user_can_create_account_with_admin_defined_fields(self):
         self.client.login(username="standard", password="complex-pass-123")
