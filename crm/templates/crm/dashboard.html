@@ -3,39 +3,42 @@
 {% block title %}Dashboard | {{ site_branding.name }}{% endblock %}
 
 {% block content %}
-<section class="hero-card">
+<section class="hero-card dashboard-hero">
     <p class="eyebrow">Dashboard</p>
-    <h1>{{ site_branding.name }}</h1>
+    <h1>Welcome back to {{ site_branding.name }}</h1>
 </section>
 
-<section class="grid">
-    <article class="panel">
-        <h2>Role</h2>
-        {% if is_crm_admin %}
-            <p class="badge admin">Admin</p>
-            <a class="button-link" href="{% url 'admin:index' %}">Open admin</a>
-        {% elif is_standard_user %}
-            <p class="badge user">Standard user</p>
-        {% else %}
-            <p class="badge user">User</p>
-        {% endif %}
-    </article>
-
-    <article class="panel">
-        <div class="tab-list" aria-label="Objects">
-            <a class="tab-card" href="{% url 'account_list' %}">
-                <span class="tab-title">Accounts</span>
-            </a>
-            <span class="tab-card disabled" aria-disabled="true">
-                <span class="tab-title">Contacts</span>
-            </span>
-            <span class="tab-card disabled" aria-disabled="true">
-                <span class="tab-title">Leads</span>
-            </span>
-            <a class="tab-card" href="{% url 'opportunity_list' %}">
-                <span class="tab-title">Opportunities</span>
-            </a>
+<section class="panel dashboard-opportunities">
+    <div class="section-heading">
+        <div>
+            <p class="eyebrow">My pipeline</p>
+            <h2>My open opportunities</h2>
         </div>
-    </article>
+        <a class="button-link" href="{% url 'opportunity_list' %}">View all opportunities</a>
+    </div>
+
+    {% if open_opportunities %}
+        <div class="record-list opportunity-summary-list" aria-label="My open opportunities">
+            {% for opportunity in open_opportunities %}
+                <a class="record-row opportunity-summary-row" href="{{ opportunity.get_absolute_url }}">
+                    <span>
+                        <strong>{{ opportunity.name }}</strong>
+                        <small>
+                            {{ opportunity.get_stage_display }}
+                            {% if opportunity.account %} • {{ opportunity.account.full_name }}{% endif %}
+                            {% if opportunity.close_date %} • Closes {{ opportunity.close_date }}{% endif %}
+                        </small>
+                    </span>
+                    <span class="record-action">Open opportunity</span>
+                </a>
+            {% endfor %}
+        </div>
+    {% else %}
+        <div class="empty-state compact-empty-state">
+            <h2>No open opportunities</h2>
+            <p>When opportunities are in progress, they will appear here for quick follow-up.</p>
+            {% if can_create_opportunity %}<a class="button-link" href="{% url 'opportunity_create' %}">Create opportunity</a>{% endif %}
+        </div>
+    {% endif %}
 </section>
 {% endblock %}

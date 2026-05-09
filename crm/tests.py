@@ -23,7 +23,7 @@ class DashboardAccessTests(TestCase):
         self.assertEqual(response.status_code, 302)
         self.assertIn(reverse("login"), response["Location"])
 
-    def test_standard_user_can_view_dashboard(self):
+    def test_standard_user_can_view_dashboard_without_role_summary(self):
         standard_group = Group.objects.get(name="Standard User")
         user = User.objects.create_user(username="standard", password="complex-pass-123")
         user.groups.add(standard_group)
@@ -32,16 +32,19 @@ class DashboardAccessTests(TestCase):
         response = self.client.get(reverse("dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Standard user")
+        self.assertContains(response, "My open opportunities")
+        self.assertNotContains(response, "Role")
+        self.assertNotContains(response, "Standard user")
 
-    def test_superuser_sees_admin_panel_link(self):
+    def test_superuser_uses_top_navigation_for_admin_access(self):
         User.objects.create_superuser(username="admin", password="complex-pass-123")
 
         self.client.login(username="admin", password="complex-pass-123")
         response = self.client.get(reverse("dashboard"))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "Open admin")
+        self.assertContains(response, reverse("admin:index"))
+        self.assertNotContains(response, "Open admin")
 
 
 class AccountViewTests(TestCase):
@@ -79,6 +82,8 @@ class AccountViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("account_list"))
         self.assertContains(response, "Accounts")
+        self.assertContains(response, "App launcher")
+        self.assertContains(response, "Search objects")
         self.assertNotContains(response, "CRM")
         self.assertNotContains(response, "total")
         self.assertNotContains(response, "Create and edit records")
@@ -391,6 +396,8 @@ class OpportunityViewTests(TestCase):
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("opportunity_list"))
         self.assertContains(response, "Opportunities")
+        self.assertContains(response, "My open opportunities")
+        self.assertContains(response, self.opportunity.get_absolute_url())
         self.assertNotContains(response, "Track stages and product line items")
         self.assertNotContains(response, "Product catalog")
         self.assertNotContains(response, "total")

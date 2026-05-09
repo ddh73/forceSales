@@ -16,12 +16,41 @@
 </head>
 <body class="{% block body_class %}{% endblock %}">
     <header class="site-header">
-        <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">{{ site_branding.name }}</a>
+        <div class="header-start">
+            {% if user.is_authenticated %}
+                <details class="app-launcher">
+                    <summary class="waffle-button" aria-label="Open object launcher" title="Open object launcher">
+                        <span aria-hidden="true"></span>
+                    </summary>
+                    <div class="launcher-panel" aria-label="Object launcher">
+                        <div class="launcher-heading">
+                            <p class="eyebrow">App launcher</p>
+                        </div>
+                        <label class="launcher-search-label" for="object-search">Search objects</label>
+                        <input id="object-search" class="launcher-search" type="search" placeholder="Search accounts or opportunities" autocomplete="off" data-object-search>
+                        <nav class="object-list" aria-label="Available record objects" data-object-list>
+                            {% for object_item in object_launcher_items %}
+                                <a class="object-card" href="{{ object_item.url }}" data-object-name="{{ object_item.keywords }}">
+                                    <span class="object-icon" aria-hidden="true">{{ object_item.icon }}</span>
+                                    <span>
+                                        <strong>{{ object_item.label }}</strong>
+                                        <small>{{ object_item.description }}</small>
+                                    </span>
+                                </a>
+                            {% endfor %}
+                        </nav>
+                        <p class="launcher-empty" data-object-empty {% if object_launcher_items %}hidden{% endif %}>No matching objects.</p>
+                    </div>
+                </details>
+            {% endif %}
+            <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">{{ site_branding.name }}</a>
+        </div>
         {% if user.is_authenticated %}
             <nav class="nav-links" aria-label="Primary navigation">
                 <span>Signed in as {{ user.get_username }}</span>
-                <a href="{% url 'account_list' %}">Accounts</a>
-                <a href="{% url 'opportunity_list' %}">Opportunities</a>
+                {% for object_item in object_launcher_items %}
+                    <a href="{{ object_item.url }}">{{ object_item.label }}</a>
+                {% endfor %}
                 {% if user.is_staff %}<a href="{% url 'admin:index' %}">Admin</a>{% endif %}
                 <form action="{% url 'logout' %}" method="post">
                     {% csrf_token %}
@@ -41,5 +70,37 @@
         {% endif %}
         {% block content %}{% endblock %}
     </main>
+    {% if user.is_authenticated %}
+        <script>
+            (function () {
+                const searchInput = document.querySelector("[data-object-search]");
+                const objectList = document.querySelector("[data-object-list]");
+                const emptyMessage = document.querySelector("[data-object-empty]");
+
+                if (!searchInput || !objectList || !emptyMessage) {
+                    return;
+                }
+
+                const objectCards = Array.from(objectList.querySelectorAll("[data-object-name]"));
+
+                searchInput.addEventListener("input", function () {
+                    const query = searchInput.value.trim().toLowerCase();
+                    let visibleCount = 0;
+
+                    objectCards.forEach(function (card) {
+                        const keywords = card.dataset.objectName.toLowerCase();
+                        const title = card.textContent.toLowerCase();
+                        const isMatch = !query || keywords.includes(query) || title.includes(query);
+                        card.hidden = !isMatch;
+                        if (isMatch) {
+                            visibleCount += 1;
+                        }
+                    });
+
+                    emptyMessage.hidden = visibleCount > 0;
+                });
+            }());
+        </script>
+    {% endif %}
 </body>
 </html>

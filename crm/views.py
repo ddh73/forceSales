@@ -22,12 +22,24 @@ class HomeView(TemplateView):
 
 
 class DashboardView(LoginRequiredMixin, TemplateView):
-    """Starter authenticated dashboard with admin and standard-user views."""
+    """Authenticated dashboard focused on useful CRM work lists."""
 
     template_name = "crm/dashboard.html"
 
+    def get_open_opportunities(self):
+        """Return the current user's readable in-progress opportunities."""
+
+        opportunities = (
+            Opportunity.objects.filter(stage=Opportunity.IN_PROGRESS)
+            .select_related("account")
+            .prefetch_related("line_items__product")
+        )
+        return scope_queryset_to_readable_records(opportunities, self.request.user)[:10]
+
     def get_context_data(self, **kwargs):
         context = super().get_context_data(**kwargs)
+        context["open_opportunities"] = self.get_open_opportunities()
+        context["can_create_opportunity"] = get_object_access(self.request.user, Opportunity).can_create
         user = self.request.user
         context["is_crm_admin"] = user.is_superuser or user.groups.filter(name="CRM Admin").exists()
         context["is_standard_user"] = user.groups.filter(name="Standard User").exists()
