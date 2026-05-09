@@ -68,7 +68,11 @@ class AccountViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("account_list"))
-        self.assertContains(response, "1 total")
+        self.assertContains(response, "Accounts")
+        self.assertNotContains(response, "CRM")
+        self.assertNotContains(response, "total")
+        self.assertNotContains(response, "Create and edit records")
+        self.assertNotContains(response, "Coming soon")
 
     def test_account_list_displays_current_accounts_and_create_action(self):
         self.client.login(username="standard", password="complex-pass-123")
@@ -280,8 +284,10 @@ class OpportunityViewTests(TestCase):
 
         self.assertEqual(response.status_code, 200)
         self.assertContains(response, reverse("opportunity_list"))
-        self.assertContains(response, "Track stages and product line items")
+        self.assertContains(response, "Opportunities")
+        self.assertNotContains(response, "Track stages and product line items")
         self.assertNotContains(response, "Product catalog")
+        self.assertNotContains(response, "total")
         with self.assertRaises(NoReverseMatch):
             reverse("product_list")
 
