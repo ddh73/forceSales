@@ -5,6 +5,7 @@ from . import views
 urlpatterns = [
     path("", views.HomeView.as_view(), name="home"),
     path("dashboard/", views.DashboardView.as_view(), name="dashboard"),
+    path("users/me/", views.UserDetailView.as_view(), name="user_detail"),
     path("accounts/", views.AccountListView.as_view(), name="account_list"),
     path("accounts/new/", views.AccountCreateView.as_view(), name="account_create"),
     path("accounts/search/", views.AccountSearchView.as_view(), name="account_search"),
