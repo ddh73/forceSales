@@ -1,0 +1,42 @@
+{% extends "crm/base.html" %}
+
+{% block title %}{{ account.full_name }} | Accounts | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <p class="eyebrow">Account</p>
+    <h1>{{ account.full_name }}</h1>
+</section>
+
+<section class="panel">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'account_list' %}">← Back to accounts</a>
+        {% if user.is_staff %}<a class="back-link" href="{% url 'admin:crm_account_change' account.pk %}">Edit in admin</a>{% endif %}
+    </div>
+
+    <p class="edit-hint">Fields start read-only. Click a field to edit it, then save your changes.</p>
+
+    <form class="record-form" method="post" novalidate>
+        {% csrf_token %}
+        {% for field in form %}
+            <div class="record-field{% if field.errors %} has-errors{% endif %}">
+                <label for="{{ field.id_for_label }}">{{ field.label }}</label>
+                {{ field }}
+                {% if field.errors %}<div class="field-errors">{{ field.errors }}</div>{% endif %}
+            </div>
+        {% endfor %}
+        <button class="save-button" type="submit" disabled>Save changes</button>
+    </form>
+</section>
+
+<script>
+    document.querySelectorAll(".record-form input").forEach((field) => {
+        field.setAttribute("readonly", "readonly");
+        field.addEventListener("click", () => {
+            field.removeAttribute("readonly");
+            field.classList.add("is-editing");
+            document.querySelector(".save-button").removeAttribute("disabled");
+        });
+    });
+</script>
+{% endblock %}
