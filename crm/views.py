@@ -40,6 +40,11 @@ class DashboardView(LoginRequiredMixin, TemplateView):
         context = super().get_context_data(**kwargs)
         context["open_opportunities"] = self.get_open_opportunities()
         context["can_create_opportunity"] = get_object_access(self.request.user, Opportunity).can_create
+        user = self.request.user
+        context["is_crm_admin"] = user.is_superuser or user.groups.filter(name="CRM Admin").exists()
+        context["is_standard_user"] = user.groups.filter(name="Standard User").exists()
+        context["account_count"] = scope_queryset_to_readable_records(Account.objects.all(), user).count()
+        context["opportunity_count"] = scope_queryset_to_readable_records(Opportunity.objects.all(), user).count()
         return context
 
 
