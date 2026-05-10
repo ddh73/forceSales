@@ -126,6 +126,8 @@ class AccountViewTests(TestCase):
         self.assertContains(response, "Accounts")
         self.assertContains(response, "App launcher")
         self.assertContains(response, "Search objects")
+        self.assertContains(response, "data-object-search")
+        self.assertContains(response, "card.hidden = !isMatch")
         self.assertNotContains(response, "CRM")
         self.assertNotContains(response, "total")
         self.assertNotContains(response, "Create and edit records")

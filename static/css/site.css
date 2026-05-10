@@ -760,6 +760,10 @@ button:hover,
     transform: translateY(-1px);
 }
 
+.object-card[hidden] {
+    display: none;
+}
+
 .object-icon {
     align-items: center;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
