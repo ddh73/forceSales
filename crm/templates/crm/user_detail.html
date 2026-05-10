@@ -36,10 +36,6 @@
             <dd>{{ user_groups|join:", "|default:"—" }}</dd>
         </div>
         <div>
-            <dt>Staff status</dt>
-            <dd>{{ current_user.is_staff|yesno:"Yes,No" }}</dd>
-        </div>
-        <div>
             <dt>Superuser status</dt>
             <dd>{{ current_user.is_superuser|yesno:"Yes,No" }}</dd>
         </div>
