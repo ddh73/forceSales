@@ -45,7 +45,7 @@
             {% endif %}
             <a class="brand" href="{% url 'dashboard' %}" aria-label="{{ site_branding.name }} home">{{ site_branding.name }}</a>
         </div>
-        {% if user.is_authenticated %}
+        {% if.is_authenticated %}
             <nav class="nav-links" aria-label="Primary navigation">
                 {% for object_item in object_launcher_items %}
                     <a href="{{ object_item.url }}">{{ object_item.label }}</a>
