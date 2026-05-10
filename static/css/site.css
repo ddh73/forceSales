@@ -87,6 +87,30 @@ body.auth-page {
     padding: 0;
 }
 
+.nav-links .user-icon-link {
+    align-items: center;
+    background: linear-gradient(135deg, var(--primary), var(--secondary) 58%, var(--accent));
+    border-radius: 999px;
+    box-shadow: 0 12px 28px rgba(11, 92, 171, 0.24);
+    color: white;
+    display: inline-flex;
+    flex: 0 0 auto;
+    font-size: 0.95rem;
+    font-weight: 900;
+    height: 2.5rem;
+    justify-content: center;
+    line-height: 1;
+    text-decoration: none;
+    transition: box-shadow 160ms ease, transform 160ms ease;
+    width: 2.5rem;
+}
+
+.nav-links .user-icon-link:hover,
+.nav-links .user-icon-link:focus {
+    box-shadow: 0 16px 32px rgba(53, 161, 255, 0.32);
+    transform: translateY(-1px);
+}
+
 .page-shell {
     margin: 0 auto;
     max-width: 1080px;
@@ -584,6 +608,39 @@ button:hover,
     padding: 0.65rem 0.75rem;
 }
 
+
+.detail-list {
+    display: grid;
+    gap: 0.85rem;
+    margin: 1rem 0 0;
+}
+
+.detail-list div {
+    background: rgba(255, 255, 255, 0.58);
+    border: 1px solid rgba(11, 92, 171, 0.12);
+    border-radius: 1rem;
+    padding: 0.9rem 1rem;
+}
+
+.detail-list dt {
+    color: var(--muted);
+    font-size: 0.78rem;
+    font-weight: 900;
+    letter-spacing: 0.08em;
+    margin-bottom: 0.25rem;
+    text-transform: uppercase;
+}
+
+.detail-list dd {
+    font-weight: 800;
+    margin: 0;
+    overflow-wrap: anywhere;
+}
+
+.user-record-panel h2 {
+    margin-bottom: 0;
+}
+
 .header-start {
     align-items: center;
     display: flex;
@@ -703,6 +760,10 @@ button:hover,
     transform: translateY(-1px);
 }
 
+.object-card[hidden] {
+    display: none;
+}
+
 .object-icon {
     align-items: center;
     background: linear-gradient(135deg, var(--primary), var(--secondary));
@@ -734,7 +795,6 @@ button:hover,
 .dashboard-hero h1 {
     margin-bottom: 0.75rem;
 }
-
 
 .dashboard-opportunities {
     display: grid;

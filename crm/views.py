@@ -21,6 +21,18 @@ class HomeView(TemplateView):
         return redirect("login")
 
 
+class UserDetailView(LoginRequiredMixin, TemplateView):
+    """Display the authenticated user's profile information."""
+
+    template_name = "crm/user_detail.html"
+
+    def get_context_data(self, **kwargs):
+        context = super().get_context_data(**kwargs)
+        context["current_user"] = self.request.user
+        context["user_groups"] = list(self.request.user.groups.values_list("name", flat=True))
+        return context
+
+
 class DashboardView(LoginRequiredMixin, TemplateView):
     """Authenticated dashboard focused on useful CRM work lists."""
 

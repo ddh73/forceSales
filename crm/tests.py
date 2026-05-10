@@ -47,6 +47,48 @@ class DashboardAccessTests(TestCase):
         self.assertNotContains(response, "Open admin")
 
 
+class UserDetailTests(TestCase):
+    @classmethod
+    def setUpTestData(cls):
+        cls.standard_group = Group.objects.get(name="Standard User")
+        cls.user = User.objects.create_user(
+            username="profileuser",
+            password="complex-pass-123",
+            first_name="Profile",
+            last_name="Person",
+            email="profile@example.com",
+        )
+        cls.user.groups.add(cls.standard_group)
+
+    def test_user_detail_requires_login(self):
+        response = self.client.get(reverse("user_detail"))
+
+        self.assertEqual(response.status_code, 302)
+        self.assertIn(reverse("login"), response["Location"])
+
+    def test_header_user_icon_links_to_current_user_record(self):
+        self.client.login(username="profileuser", password="complex-pass-123")
+
+        response = self.client.get(reverse("dashboard"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, reverse("user_detail"))
+        self.assertContains(response, "View current user record for profileuser")
+        self.assertContains(response, ">P</span>", html=False)
+
+    def test_user_detail_displays_current_user_information(self):
+        self.client.login(username="profileuser", password="complex-pass-123")
+
+        response = self.client.get(reverse("user_detail"))
+
+        self.assertEqual(response.status_code, 200)
+        self.assertContains(response, "Current user information")
+        self.assertContains(response, "Profile Person")
+        self.assertContains(response, "profileuser")
+        self.assertContains(response, "profile@example.com")
+        self.assertContains(response, "Standard User")
+
+
 class AccountViewTests(TestCase):
     @classmethod
     def setUpTestData(cls):
@@ -84,6 +126,8 @@ class AccountViewTests(TestCase):
         self.assertContains(response, "Accounts")
         self.assertContains(response, "App launcher")
         self.assertContains(response, "Search objects")
+        self.assertContains(response, "data-object-search")
+        self.assertContains(response, "card.hidden = !isMatch")
         self.assertNotContains(response, "CRM")
         self.assertNotContains(response, "total")
         self.assertNotContains(response, "Create and edit records")

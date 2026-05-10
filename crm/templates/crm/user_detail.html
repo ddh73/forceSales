@@ -1,0 +1,52 @@
+{% extends "crm/base.html" %}
+
+{% block title %}{{ current_user.get_username }} | User | {{ site_branding.name }}{% endblock %}
+
+{% block content %}
+<section class="hero-card compact-hero">
+    <p class="eyebrow">User record</p>
+    <h1>{{ current_user.get_full_name|default:current_user.get_username }}</h1>
+</section>
+
+<section class="panel user-record-panel" aria-labelledby="user-record-heading">
+    <div class="record-toolbar">
+        <a class="back-link" href="{% url 'dashboard' %}">← Back to dashboard</a>
+    </div>
+
+    <h2 id="user-record-heading">Current user information</h2>
+    <dl class="detail-list user-detail-list">
+        <div>
+            <dt>Username</dt>
+            <dd>{{ current_user.get_username }}</dd>
+        </div>
+        <div>
+            <dt>First name</dt>
+            <dd>{{ current_user.first_name|default:"—" }}</dd>
+        </div>
+        <div>
+            <dt>Last name</dt>
+            <dd>{{ current_user.last_name|default:"—" }}</dd>
+        </div>
+        <div>
+            <dt>Email</dt>
+            <dd>{{ current_user.email|default:"—" }}</dd>
+        </div>
+        <div>
+            <dt>Groups</dt>
+            <dd>{{ user_groups|join:", "|default:"—" }}</dd>
+        </div>
+        <div>
+            <dt>Superuser status</dt>
+            <dd>{{ current_user.is_superuser|yesno:"Yes,No" }}</dd>
+        </div>
+        <div>
+            <dt>Date joined</dt>
+            <dd>{{ current_user.date_joined|date:"M j, Y, g:i A" }}</dd>
+        </div>
+        <div>
+            <dt>Last login</dt>
+            <dd>{{ current_user.last_login|date:"M j, Y, g:i A"|default:"—" }}</dd>
+        </div>
+    </dl>
+</section>
+{% endblock %}
