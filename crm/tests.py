@@ -2,6 +2,7 @@ from datetime import date
 
 from django.contrib.auth.models import Group, User
 from django.contrib.contenttypes.models import ContentType
+from django.templatetags.static import static
 from django.test import TestCase, override_settings
 from django.urls import NoReverseMatch, reverse
 
@@ -574,7 +575,7 @@ class ProfileObjectPermissionAdminTests(TestCase):
         response = self.client.get(reverse("admin:crm_profileobjectpermission_change", args=[permission.pk]))
 
         self.assertEqual(response.status_code, 200)
-        self.assertContains(response, "crm/admin/profile_object_permission.js")
+        self.assertContains(response, static("crm/admin/profile_object_permission.js"))
 
     def test_lookup_returns_existing_access_for_selected_profile_and_object(self):
         standard_group = Group.objects.get(name="Standard User")
