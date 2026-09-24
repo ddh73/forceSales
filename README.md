@@ -75,7 +75,7 @@ These steps assume an Azure App Service for Linux running Python and, for produc
 2. Configure the startup command to:
 
    ```bash
-   ./startup.sh
+   bash startup.sh
    ```
 
 3. Add App Service application settings:
@@ -93,12 +93,21 @@ These steps assume an Azure App Service for Linux running Python and, for produc
    DATABASE_URL=postgres://USER:PASSWORD@HOST:5432/DBNAME
    ```
 
-4. Deploy the app. `startup.sh` runs migrations, collects static files, and starts Gunicorn.
-5. Create the first superuser from an App Service SSH session or one-off console command:
+4. Set `SCM_DO_BUILD_DURING_DEPLOYMENT=true` so Azure installs the Python dependencies. Keep the startup command set to `bash startup.sh`; launching Gunicorn directly skips database initialization.
+5. Deploy the app. `startup.sh` runs migrations, optionally creates the initial admin, collects static files, and starts Gunicorn. GitHub Actions checks migrations, tests the app, and exercises startup/login/restart before deployment. The deployment ZIP contains only tracked files.
+6. To provision the first admin automatically, set `DJANGO_SUPERUSER_USERNAME`, `DJANGO_SUPERUSER_PASSWORD`, and optionally `DJANGO_SUPERUSER_EMAIL` in Azure application settings. There are no built-in credentials. Startup leaves an existing user and password unchanged; remove the bootstrap settings after the first successful login. Alternatively use an App Service SSH session:
 
    ```bash
    python manage.py createsuperuser
    ```
+
+### SQLite on the current single-instance App Service
+
+When `DATABASE_URL` is unset, Azure uses `/home/site/data/db.sqlite3`, outside the temporary Oryx app directory. Locally it uses `db.sqlite3` beside `manage.py`. `DJANGO_SQLITE_PATH` overrides that fallback; `DATABASE_URL` always takes precedence. Keep SQLite on a single instance and back it up; use PostgreSQL before scaling to multiple instances.
+
+If an older deployment has real data in its app-directory SQLite file, back up that database while the old instance is still running and restore it to the persistent path **before** switching deployment/configuration. Do not copy a live SQLite file with ordinary filesystem copying or overwrite an existing persistent database. The app intentionally does not guess which old database to import.
+
+Azure defaults to `DJANGO_DEBUG=False` and secure cookies. Set a unique `DJANGO_SECRET_KEY` in application settings; the fallback key is for local development only. Static files use Django 5.2's `STORAGES` configuration and WhiteNoise manifest storage.
 
 ## Useful commands
 
