@@ -7,9 +7,10 @@ import dj_database_url
 from . import site_branding
 
 BASE_DIR = Path(__file__).resolve().parent.parent
+ON_AZURE = bool(os.environ.get("WEBSITE_INSTANCE_ID"))
 
 SECRET_KEY = os.environ.get("DJANGO_SECRET_KEY", "dev-only-change-me")
-DEBUG = os.environ.get("DJANGO_DEBUG", "True").lower() in {"1", "true", "yes", "on"}
+DEBUG = os.environ.get("DJANGO_DEBUG", "False" if ON_AZURE else "True").lower() in {"1", "true", "yes", "on"}
 
 _allowed_hosts = os.environ.get("DJANGO_ALLOWED_HOSTS", "localhost,127.0.0.1,.azurewebsites.net")
 ALLOWED_HOSTS = [host.strip() for host in _allowed_hosts.split(",") if host.strip()]
@@ -65,9 +66,16 @@ TEMPLATES = [
 
 WSGI_APPLICATION = "force_sales.wsgi.application"
 
+SQLITE_PATH = Path(os.environ.get(
+    "DJANGO_SQLITE_PATH",
+    "/home/site/data/db.sqlite3" if ON_AZURE else str(BASE_DIR / "db.sqlite3"),
+))
+if not os.environ.get("DATABASE_URL"):
+    SQLITE_PATH.parent.mkdir(parents=True, exist_ok=True)
+
 DATABASES = {
     "default": dj_database_url.config(
-        default=f"sqlite:///{BASE_DIR / 'db.sqlite3'}",
+        default=f"sqlite:///{SQLITE_PATH.as_posix()}",
         conn_max_age=600,
         conn_health_checks=True,
     )
@@ -88,7 +96,10 @@ USE_TZ = True
 STATIC_URL = "static/"
 STATIC_ROOT = BASE_DIR / "staticfiles"
 STATICFILES_DIRS = [BASE_DIR / "static"]
-STATICFILES_STORAGE = "whitenoise.storage.CompressedManifestStaticFilesStorage"
+STORAGES = {
+    "default": {"BACKEND": "django.core.files.storage.FileSystemStorage"},
+    "staticfiles": {"BACKEND": "whitenoise.storage.CompressedManifestStaticFilesStorage"},
+}
 
 DEFAULT_AUTO_FIELD = "django.db.models.BigAutoField"
 
@@ -98,5 +109,7 @@ LOGOUT_REDIRECT_URL = "login"
 
 SESSION_COOKIE_HTTPONLY = True
 CSRF_COOKIE_HTTPONLY = True
+SESSION_COOKIE_SECURE = ON_AZURE
+CSRF_COOKIE_SECURE = ON_AZURE
 SECURE_PROXY_SSL_HEADER = ("HTTP_X_FORWARDED_PROTO", "https")
 SECURE_SSL_REDIRECT = os.environ.get("DJANGO_SECURE_SSL_REDIRECT", "False").lower() in {"1", "true", "yes", "on"}
